@@ -65,15 +65,23 @@ app.use((err, req, res, next) => {
 // Khởi tạo Socket.IO
 const io = initSocket(server);
 
-// Lắng nghe cổng
+// Lắng nghe cổng trên 0.0.0.0 (tương thích mọi cloud host: Render, Railway, VPS)
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => {
+server.listen(PORT, '0.0.0.0', () => {
   console.log(`====================================================`);
   console.log(`🎮 WEBSITE TRÒ CHƠI HỌC TẬP LỚP HỌC ĐÃ SẴN SÀNG!`);
   console.log(`🌐 Server đang chạy tại: http://localhost:${PORT}`);
   console.log(`🔑 Đăng nhập quản trị:   http://localhost:${PORT}/login`);
   console.log(`📺 Màn hình trình chiếu: http://localhost:${PORT}/display/<MÃ_PHÒNG>`);
   console.log(`====================================================`);
+});
+
+// Ngăn tiến trình bị crash gây lỗi 502
+process.on('unhandledRejection', (reason) => {
+  console.error('[Unhandled Rejection]', reason);
+});
+process.on('uncaughtException', (err) => {
+  console.error('[Uncaught Exception]', err);
 });
 
 module.exports = { app, server, io };

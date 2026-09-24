@@ -2,7 +2,6 @@ const mongoose = require('mongoose');
 const dns = require('dns');
 
 // Chỉ thiết lập DNS máy chủ trên môi trường Windows cục bộ
-// Tránh lỗi can thiệp DNS trên Linux / AWS / Vercel
 if (process.platform === 'win32') {
   try {
     dns.setServers(['8.8.8.8', '1.1.1.1']);
@@ -23,7 +22,7 @@ const connectDB = async () => {
     const uri = process.env.MONGODB_URI || 'mongodb://thgamedb:Tinhoc123%40@ac-jwjkqb1-shard-00-00.vmnlwbv.mongodb.net:27017,ac-jwjkqb1-shard-00-01.vmnlwbv.mongodb.net:27017,ac-jwjkqb1-shard-00-02.vmnlwbv.mongodb.net:27017/game_db?ssl=true&authSource=admin&retryWrites=true&w=majority';
     
     cachedPromise = mongoose.connect(uri, {
-      serverSelectionTimeoutMS: 10000,
+      serverSelectionTimeoutMS: 8000,
       socketTimeoutMS: 45000,
     }).then(conn => {
       cachedConn = conn;
@@ -32,7 +31,7 @@ const connectDB = async () => {
     }).catch(err => {
       cachedPromise = null;
       console.error(`[Database Error] Lỗi kết nối MongoDB Atlas: ${err.message}`);
-      throw err;
+      return null; // Không throw để tránh crash tiến trình Node.js (gây lỗi 502)
     });
   }
 
