@@ -7,9 +7,8 @@ try {
 } catch (e) {
   console.warn('DNS server configuration warning:', e.message);
 }
-
 const connectDB = async () => {
-  const uri = process.env.MONGODB_URI || 'mongodb+srv://thgamedb:Tinhoc123%40@mydatabase.vmnlwbv.mongodb.net/game_db?retryWrites=true&w=majority&appName=MyDatabase';
+  const uri = process.env.MONGODB_URI || 'mongodb://thgamedb:Tinhoc123%40@ac-jwjkqb1-shard-00-00.vmnlwbv.mongodb.net:27017,ac-jwjkqb1-shard-00-01.vmnlwbv.mongodb.net:27017,ac-jwjkqb1-shard-00-02.vmnlwbv.mongodb.net:27017/game_db?ssl=true&authSource=admin&retryWrites=true&w=majority';
   
   try {
     const conn = await mongoose.connect(uri, {
