@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %></title>
+  <link rel="stylesheet" href="/css/theme.css">
+  <style>
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+    .login-card {
+      width: 100%;
+      max-width: 440px;
+      padding: 40px 35px;
+      text-align: center;
+    }
+    .brand-icon {
+      font-size: 3.5rem;
+      color: var(--accent-cyan);
+      margin-bottom: 15px;
+      display: inline-block;
+      filter: drop-shadow(0 0 15px rgba(0, 242, 254, 0.5));
+    }
+    .login-title {
+      font-size: 1.8rem;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      margin-bottom: 8px;
+    }
+    .login-subtitle {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      margin-bottom: 30px;
+    }
+    .hint-box {
+      margin-top: 25px;
+      padding: 12px;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.04);
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      border: 1px dashed rgba(255, 255, 255, 0.15);
+    }
+  </style>
+</head>
+<body>
+  <div class="glass-panel login-card">
+    <i class="bi bi-controller brand-icon"></i>
+    <h1 class="login-title">GAMESHOW HỌC TẬP</h1>
+    <p class="login-subtitle">Hệ thống trò chơi giáo dục dành cho lớp học</p>
+
+    <% if (error) { %>
+      <div class="alert alert-danger" style="text-align: left;">
+        <i class="bi bi-exclamation-triangle-fill"></i> <%= error %>
+      </div>
+    <% } %>
+
+    <form action="/login" method="POST">
+      <div class="form-group" style="text-align: left;">
+        <label class="form-label"><i class="bi bi-person-fill"></i> Tên đăng nhập</label>
+        <input type="text" name="username" class="form-control" placeholder="Nhập tên đăng nhập" required autofocus value="admin">
+      </div>
+
+      <div class="form-group" style="text-align: left;">
+        <label class="form-label"><i class="bi bi-shield-lock-fill"></i> Mật khẩu</label>
+        <input type="password" name="password" class="form-control" placeholder="Nhập mật khẩu" required value="Admin@123456">
+      </div>
+
+      <button type="submit" class="btn-gameshow btn-primary" style="width: 100%; padding: 12px; font-size: 1.05rem; margin-top: 10px;">
+        <i class="bi bi-box-arrow-in-right"></i> Đăng Nhập Hệ Thống
+      </button>
+    </form>
+
+    <div class="hint-box">
+      <i class="bi bi-info-circle" style="color: var(--accent-gold);"></i> 
+      Tài khoản mặc định: <b>admin</b> | Mật khẩu: <b>Admin@123456</b>
+    </div>
+  </div>
+</body>
+</html>

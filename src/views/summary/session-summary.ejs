@@ -1,0 +1,134 @@
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+
+<div style="max-width: 1000px; margin: 0 auto; text-align: center; padding: 20px 0;">
+  
+  <div style="margin-bottom: 30px;">
+    <span class="badge badge-gold" style="font-size: 1.1rem; padding: 8px 24px; margin-bottom: 12px;">
+      <i class="bi bi-trophy-fill"></i> TỔNG KẾT & VINH DANH
+    </span>
+    <h1 style="font-size: 2.4rem; font-weight: 900; color: #fff; letter-spacing: -0.5px; margin-top: 8px;">
+      KẾT QUẢ THI ĐẤU - PHÒNG <%= session.session_code %>
+    </h1>
+    <p style="color: var(--text-muted); font-size: 1.05rem;">
+      Trò chơi: <b style="color: var(--accent-cyan);"><%= gameType ? gameType.name : session.game_type_code %></b> | 
+      Thời gian kết thúc: <%= new Date(session.ended_at || Date.now()).toLocaleTimeString('vi-VN') %>
+    </p>
+  </div>
+
+  <!-- Bục Vinh Quang (Podium Top 3) -->
+  <div style="display: flex; justify-content: center; align-items: flex-end; gap: 20px; margin: 50px 0 60px 0; min-height: 280px;">
+    
+    <!-- Hạng 2 (Bạc) -->
+    <% if (rankedTeams.length > 1) { %>
+      <div style="display: flex; flex-direction: column; align-items: center; width: 180px;">
+        <div style="width: 70px; height: 70px; border-radius: 50%; background: rgba(226, 232, 240, 0.15); border: 2px solid #cbd5e1; display: flex; align-items: center; justify-content: center; font-size: 2rem; color: #cbd5e1; margin-bottom: 12px; box-shadow: 0 0 20px rgba(203, 213, 225, 0.4);">
+          <i class="bi bi-award-fill"></i>
+        </div>
+        <div style="font-weight: 800; font-size: 1.15rem; color: #fff; margin-bottom: 4px;"><%= rankedTeams[1].name %></div>
+        <div style="font-size: 1.4rem; font-weight: 900; color: var(--accent-gold); margin-bottom: 10px;"><%= rankedTeams[1].score %> đ</div>
+        <div class="glass-panel" style="width: 100%; height: 130px; background: linear-gradient(to top, rgba(203, 213, 225, 0.2), rgba(203, 213, 225, 0.05)); border: 1px solid #cbd5e1; border-radius: 12px 12px 0 0; display: flex; align-items: center; justify-content: center; font-size: 2rem; font-weight: 900; color: #cbd5e1;">
+          2
+        </div>
+      </div>
+    <% } %>
+
+    <!-- Hạng 1 (Vàng - Cao nhất) -->
+    <% if (rankedTeams.length > 0) { %>
+      <div style="display: flex; flex-direction: column; align-items: center; width: 220px;">
+        <div style="width: 90px; height: 90px; border-radius: 50%; background: rgba(255, 215, 0, 0.2); border: 3px solid var(--accent-gold); display: flex; align-items: center; justify-content: center; font-size: 2.8rem; color: var(--accent-gold); margin-bottom: 12px; box-shadow: 0 0 35px rgba(255, 215, 0, 0.7);" class="pulse-glow">
+          <i class="bi bi-trophy-fill"></i>
+        </div>
+        <div style="font-weight: 900; font-size: 1.4rem; color: #fff; margin-bottom: 4px;"><%= rankedTeams[0].name %></div>
+        <div style="font-size: 1.8rem; font-weight: 900; color: var(--accent-gold); margin-bottom: 10px;"><%= rankedTeams[0].score %> đ</div>
+        <div class="glass-panel" style="width: 100%; height: 180px; background: linear-gradient(to top, rgba(255, 215, 0, 0.3), rgba(255, 215, 0, 0.08)); border: 2px solid var(--accent-gold); border-radius: 16px 16px 0 0; display: flex; align-items: center; justify-content: center; font-size: 2.8rem; font-weight: 900; color: var(--accent-gold);">
+          1 👑
+        </div>
+      </div>
+    <% } %>
+
+    <!-- Hạng 3 (Đồng) -->
+    <% if (rankedTeams.length > 2) { %>
+      <div style="display: flex; flex-direction: column; align-items: center; width: 180px;">
+        <div style="width: 70px; height: 70px; border-radius: 50%; background: rgba(217, 119, 6, 0.15); border: 2px solid #d97706; display: flex; align-items: center; justify-content: center; font-size: 2rem; color: #d97706; margin-bottom: 12px; box-shadow: 0 0 20px rgba(217, 119, 6, 0.4);">
+          <i class="bi bi-award-fill"></i>
+        </div>
+        <div style="font-weight: 800; font-size: 1.15rem; color: #fff; margin-bottom: 4px;"><%= rankedTeams[2].name %></div>
+        <div style="font-size: 1.4rem; font-weight: 900; color: var(--accent-gold); margin-bottom: 10px;"><%= rankedTeams[2].score %> đ</div>
+        <div class="glass-panel" style="width: 100%; height: 100px; background: linear-gradient(to top, rgba(217, 119, 6, 0.2), rgba(217, 119, 6, 0.05)); border: 1px solid #d97706; border-radius: 12px 12px 0 0; display: flex; align-items: center; justify-content: center; font-size: 2rem; font-weight: 900; color: #d97706;">
+          3
+        </div>
+      </div>
+    <% } %>
+
+  </div>
+
+  <!-- Bảng điểm chi tiết tất cả các đội -->
+  <div class="glass-panel" style="padding: 24px; text-align: left; margin-bottom: 35px;">
+    <h3 style="font-size: 1.2rem; font-weight: 800; color: #fff; margin-bottom: 16px;">
+      <i class="bi bi-list-stars" style="color: var(--accent-cyan);"></i> Bảng Điểm Chi Tiết
+    </h3>
+
+    <table style="width: 100%; border-collapse: collapse;">
+      <thead>
+        <tr style="border-bottom: 1px solid var(--border-color); color: var(--text-muted); font-size: 0.85rem; text-transform: uppercase;">
+          <th style="padding: 12px 16px;">Thứ Hạng</th>
+          <th style="padding: 12px 16px;">Tên Đội Thi</th>
+          <th style="padding: 12px 16px; text-align: right;">Điểm Số</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% rankedTeams.forEach((t, index) => { %>
+          <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+            <td style="padding: 14px 16px; font-weight: 800; font-size: 1.1rem; color: <%= index === 0 ? 'var(--accent-gold)' : (index === 1 ? '#cbd5e1' : (index === 2 ? '#d97706' : '#fff')) %>;">
+              #<%= index + 1 %>
+            </td>
+            <td style="padding: 14px 16px; font-weight: 700; color: #fff; display: flex; align-items: center; gap: 10px;">
+              <span style="width: 12px; height: 12px; border-radius: 50%; background: <%= t.color %>; display: inline-block;"></span>
+              <%= t.name %>
+            </td>
+            <td style="padding: 14px 16px; font-weight: 900; font-size: 1.3rem; color: var(--accent-gold); text-align: right;">
+              <%= t.score %> đ
+            </td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Nút điều hướng -->
+  <div style="display: flex; justify-content: center; gap: 15px;">
+    <a href="/admin/sessions/create" class="btn-gameshow btn-gold" style="padding: 12px 28px; font-size: 1.1rem;">
+      <i class="bi bi-play-circle-fill"></i> Tạo Phiên Chơi Mới
+    </a>
+    <a href="/admin/dashboard" class="btn-gameshow btn-secondary" style="padding: 12px 24px;">
+      <i class="bi bi-house-door-fill"></i> Về Bảng Điều Khiển
+    </a>
+  </div>
+
+</div>
+
+<script>
+  // Bắn pháo hoa vinh danh
+  window.onload = function() {
+    confetti({
+      particleCount: 150,
+      spread: 90,
+      origin: { y: 0.6 }
+    });
+
+    setTimeout(() => {
+      confetti({
+        particleCount: 100,
+        angle: 60,
+        spread: 55,
+        origin: { x: 0 }
+      });
+      confetti({
+        particleCount: 100,
+        angle: 120,
+        spread: 55,
+        origin: { x: 1 }
+      });
+    }, 400);
+  };
+</script>

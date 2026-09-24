@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= typeof title !== 'undefined' ? title : 'Màn Hình Trình Chiếu Gameshow' %></title>
+  <link rel="stylesheet" href="/css/theme.css">
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/js/audio-synthesizer.js"></script>
+  <script src="/js/wheel.js"></script>
+  <script src="/js/crossword.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+  <style>
+    body {
+      overflow: hidden;
+      background: #050814;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      width: 100vw;
+    }
+    .projector-stage {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      background: radial-gradient(circle at 50% 30%, #101c3d 0%, #060a17 80%);
+    }
+  </style>
+</head>
+<body>
+  <div class="projector-stage">
+    <%- body %>
+  </div>
+</body>
+</html>

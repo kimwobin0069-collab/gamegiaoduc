@@ -1,0 +1,439 @@
+<script src="/socket.io/socket.io.js"></script>
+
+<!-- Top Controller Bar -->
+<div class="glass-panel" style="padding: 16px 25px; margin-bottom: 25px; display: flex; justify-content: space-between; align-items: center; background: rgba(13, 22, 45, 0.95);">
+  <div style="display: flex; align-items: center; gap: 15px;">
+    <div style="width: 48px; height: 48px; border-radius: 12px; background: <%= gameType.color %>22; display: flex; align-items: center; justify-content: center; font-size: 1.6rem; color: <%= gameType.color %>;">
+      <i class="bi <%= gameType.icon %>"></i>
+    </div>
+    <div>
+      <h1 style="font-size: 1.35rem; font-weight: 800; color: #fff; margin: 0;"><%= gameType.name %></h1>
+      <div style="font-size: 0.85rem; color: var(--text-muted);">
+        Mã phòng: <b style="color: var(--accent-gold); font-size: 1.1rem; letter-spacing: 1px;"><%= session.session_code %></b>
+      </div>
+    </div>
+  </div>
+
+  <div style="display: flex; gap: 12px; align-items: center;">
+    <a href="/display/<%= session.session_code %>" target="_blank" class="btn-gameshow btn-gold" style="padding: 10px 18px;">
+      <i class="bi bi-tv"></i> Mở Màn Hình Trình Chiếu (16:9)
+    </a>
+    <button onclick="endGame()" class="btn-gameshow btn-danger" style="padding: 10px 16px;">
+      <i class="bi bi-stop-circle"></i> Kết Thúc Trò Chơi
+    </button>
+  </div>
+</div>
+
+<!-- Main Controller Layout -->
+<div style="display: grid; grid-template-columns: 1.25fr 0.75fr; gap: 25px; align-items: start;">
+  
+  <!-- CỘT TRÁI: ĐIỀU KHIỂN CÂU HỎI & LOGIC TRÒ CHƠI -->
+  <div style="display: flex; flex-direction: column; gap: 20px;">
+    
+    <!-- Question Status & Card -->
+    <div class="glass-panel" style="padding: 24px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">
+        <div>
+          <span class="badge badge-gold" id="qIndexBadge" style="font-size: 0.9rem;">
+            CÂU HỎI <%= session.current_question_index + 1 %> / <%= questions.length %>
+          </span>
+        </div>
+        <div style="display: flex; gap: 8px;">
+          <button onclick="prevQuestion()" class="btn-gameshow btn-secondary" style="padding: 6px 12px; font-size: 0.85rem;">
+            <i class="bi bi-chevron-left"></i> Câu Trước
+          </button>
+          <button onclick="nextQuestion()" class="btn-gameshow btn-secondary" style="padding: 6px 12px; font-size: 0.85rem;">
+            Câu Tiếp Theo <i class="bi bi-chevron-right"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Nội dung câu hỏi (Dành riêng cho GV thấy trước đáp án) -->
+      <div id="teacherQuestionView" style="margin-bottom: 20px;">
+        <h2 id="qText" style="font-size: 1.3rem; font-weight: 700; color: #fff; margin-bottom: 15px; line-height: 1.4;">
+          <%= currentQuestion ? currentQuestion.question_text : 'Chưa có câu hỏi' %>
+        </h2>
+
+        <!-- Chi tiết phương án hoặc từ khóa -->
+        <div id="qDetails">
+          <% if (currentQuestion && currentQuestion.data) { %>
+            <% const d = currentQuestion.data; %>
+            
+            <% if (session.game_type_code === 'millionaire' || session.game_type_code === 'acceleration') { %>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px;">
+                <div class="option-pill" id="optA" style="padding: 10px 14px; border-radius: 8px; background: rgba(255,255,255,0.04); border: 1px solid <%= d.correct_answer === 'A' ? 'var(--accent-green)' : 'var(--border-color)' %>;">
+                  <b style="color: var(--accent-cyan);">A:</b> <%= d.option_a %>
+                  <% if (d.correct_answer === 'A') { %> <i class="bi bi-check-circle-fill" style="color: var(--accent-green); float: right;"></i> <% } %>
+                </div>
+                <div class="option-pill" id="optB" style="padding: 10px 14px; border-radius: 8px; background: rgba(255,255,255,0.04); border: 1px solid <%= d.correct_answer === 'B' ? 'var(--accent-green)' : 'var(--border-color)' %>;">
+                  <b style="color: var(--accent-cyan);">B:</b> <%= d.option_b %>
+                  <% if (d.correct_answer === 'B') { %> <i class="bi bi-check-circle-fill" style="color: var(--accent-green); float: right;"></i> <% } %>
+                </div>
+                <div class="option-pill" id="optC" style="padding: 10px 14px; border-radius: 8px; background: rgba(255,255,255,0.04); border: 1px solid <%= d.correct_answer === 'C' ? 'var(--accent-green)' : 'var(--border-color)' %>;">
+                  <b style="color: var(--accent-cyan);">C:</b> <%= d.option_c %>
+                  <% if (d.correct_answer === 'C') { %> <i class="bi bi-check-circle-fill" style="color: var(--accent-green); float: right;"></i> <% } %>
+                </div>
+                <div class="option-pill" id="optD" style="padding: 10px 14px; border-radius: 8px; background: rgba(255,255,255,0.04); border: 1px solid <%= d.correct_answer === 'D' ? 'var(--accent-green)' : 'var(--border-color)' %>;">
+                  <b style="color: var(--accent-cyan);">D:</b> <%= d.option_d %>
+                  <% if (d.correct_answer === 'D') { %> <i class="bi bi-check-circle-fill" style="color: var(--accent-green); float: right;"></i> <% } %>
+                </div>
+              </div>
+              <div style="padding: 10px 14px; border-radius: 8px; background: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.3); color: #34d399; font-size: 0.92rem;">
+                <i class="bi bi-key-fill"></i> Đáp án đúng: <b><%= d.correct_answer %></b> <%= d.explanation ? `(${d.explanation})` : '' %>
+              </div>
+
+            <% } else if (session.game_type_code === 'wheel') { %>
+              <div style="padding: 14px; border-radius: 8px; background: rgba(236, 72, 153, 0.12); border: 1px solid rgba(236, 72, 153, 0.3);">
+                <div style="font-size: 0.85rem; color: var(--text-muted);">TỪ KHÓA BÍ MẬT:</div>
+                <div style="font-size: 1.5rem; font-weight: 800; color: #fff; letter-spacing: 3px;"><%= d.keyword %></div>
+                <div style="font-size: 0.85rem; color: var(--text-muted); margin-top: 6px;">
+                  Gợi ý: <%= d.hint_1 || d.hint_2 || 'Không có gợi ý' %>
+                </div>
+              </div>
+
+            <% } else if (session.game_type_code === 'obstacle') { %>
+              <div style="padding: 14px; border-radius: 8px; background: rgba(139, 92, 246, 0.12); border: 1px solid rgba(139, 92, 246, 0.3);">
+                <div>Đáp án hàng ngang: <b style="font-size: 1.2rem; color: #fff;"><%= d.answer %></b> (Mảnh ghép số <%= d.tile_index %>)</div>
+              </div>
+
+            <% } else if (session.game_type_code === 'crossword') { %>
+              <div style="padding: 14px; border-radius: 8px; background: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.3);">
+                <div>Đáp án: <b style="font-size: 1.2rem; color: #fff;"><%= d.answer %></b> (Chữ thứ <%= d.keyword_position %> nằm trên cột khóa)</div>
+              </div>
+
+            <% } else if (session.game_type_code === 'price_is_right') { %>
+              <div style="padding: 14px; border-radius: 8px; background: rgba(6, 182, 212, 0.12); border: 1px solid rgba(6, 182, 212, 0.3);">
+                <div>Giá đúng sản phẩm: <b style="font-size: 1.4rem; color: var(--accent-gold);"><%= Number(d.correct_price).toLocaleString() %> VNĐ</b></div>
+              </div>
+            <% } %>
+          <% } %>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div style="display: flex; gap: 12px; border-top: 1px solid var(--border-color); padding-top: 18px; flex-wrap: wrap;">
+        <button onclick="revealAnswer()" class="btn-gameshow btn-gold" style="flex: 1; padding: 12px; justify-content: center; font-size: 1.05rem;">
+          <i class="bi bi-eye-fill"></i> CÔNG BỐ ĐÁP ÁN
+        </button>
+        <% if (session.game_type_code === 'millionaire') { %>
+          <button onclick="lockAnswerPrompt()" class="btn-gameshow btn-primary" style="padding: 12px 18px;">
+            <i class="bi bi-lock-fill"></i> Chốt Đáp Án
+          </button>
+        <% } %>
+      </div>
+    </div>
+
+    <!-- GAME-SPECIFIC CONTROLLERS -->
+    <!-- 1. Trợ giúp cho Ai là triệu phú -->
+    <% if (session.game_type_code === 'millionaire') { %>
+      <div class="glass-panel" style="padding: 20px;">
+        <h3 style="font-size: 1.05rem; font-weight: 700; color: #fff; margin-bottom: 14px;">
+          <i class="bi bi-life-preserver" style="color: var(--accent-cyan);"></i> Quyền Trợ Giúp
+        </h3>
+        <div style="display: flex; gap: 10px;">
+          <button onclick="triggerLifeline('50:50')" class="btn-gameshow btn-secondary" style="flex: 1;">
+            <i class="bi bi-percent"></i> 50:50
+          </button>
+          <button onclick="triggerLifeline('ask_class')" class="btn-gameshow btn-secondary" style="flex: 1;">
+            <i class="bi bi-bar-chart-fill"></i> Hỏi Ý Kiến Lớp
+          </button>
+          <button onclick="triggerLifeline('teacher_hint')" class="btn-gameshow btn-secondary" style="flex: 1;">
+            <i class="bi bi-lightbulb-fill"></i> Gợi Ý Của GV
+          </button>
+        </div>
+      </div>
+    <% } %>
+
+    <!-- 2. Điều khiển Vòng quay cho Chiếc nón kỳ diệu -->
+    <% if (session.game_type_code === 'wheel') { %>
+      <div class="glass-panel" style="padding: 20px;">
+        <h3 style="font-size: 1.05rem; font-weight: 700; color: #fff; margin-bottom: 14px;">
+          <i class="bi bi-pie-chart-fill" style="color: #ec4899;"></i> Điều Khiển Vòng Quay & Ô Chữ
+        </h3>
+        <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+          <button onclick="spinWheelRandom()" class="btn-gameshow btn-gold" style="flex: 1;">
+            <i class="bi bi-arrow-repeat"></i> Quay Nón Ngẫu Nhiên
+          </button>
+          <button onclick="promptRevealLetter()" class="btn-gameshow btn-primary" style="flex: 1;">
+            <i class="bi bi-fonts"></i> Mở Một Chữ Cái
+          </button>
+        </div>
+      </div>
+    <% } %>
+
+    <!-- 3. Mảnh ghép cho Vượt chướng ngại vật -->
+    <% if (session.game_type_code === 'obstacle') { %>
+      <div class="glass-panel" style="padding: 20px;">
+        <h3 style="font-size: 1.05rem; font-weight: 700; color: #fff; margin-bottom: 14px;">
+          <i class="bi bi-puzzle-fill" style="color: #8b5cf6;"></i> Mảnh Ghép Chướng Ngại Vật
+        </h3>
+        <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px;">
+          <% for (let i = 1; i <= 4; i++) { %>
+            <button onclick="revealPuzzlePiece(<%= i %>)" class="btn-gameshow btn-secondary">
+              <i class="bi bi-unlock"></i> Mở Mảnh <%= i %>
+            </button>
+          <% } %>
+          <button onclick="revealFullPuzzle()" class="btn-gameshow btn-gold">
+            <i class="bi bi-image"></i> Công Bố Toàn Bộ Ảnh
+          </button>
+        </div>
+      </div>
+    <% } %>
+
+    <!-- 4. Ô chữ bí mật -->
+    <% if (session.game_type_code === 'crossword') { %>
+      <div class="glass-panel" style="padding: 20px;">
+        <h3 style="font-size: 1.05rem; font-weight: 700; color: #fff; margin-bottom: 14px;">
+          <i class="bi bi-grid-3x3" style="color: #10b981;"></i> Điều Khiển Lưới Ô Chữ
+        </h3>
+        <div style="display: flex; gap: 10px;">
+          <button onclick="revealCurrentCrosswordRow()" class="btn-gameshow btn-primary">
+            <i class="bi bi-view-list"></i> Mở Hàng Ngang Hiện Tại
+          </button>
+          <button onclick="revealCrosswordKeyword()" class="btn-gameshow btn-gold">
+            <i class="bi bi-star-fill"></i> Mở Cột Từ Khóa Dọc
+          </button>
+        </div>
+      </div>
+    <% } %>
+
+    <!-- 5. Hãy chọn giá đúng -->
+    <% if (session.game_type_code === 'price_is_right') { %>
+      <div class="glass-panel" style="padding: 20px;">
+        <h3 style="font-size: 1.05rem; font-weight: 700; color: #fff; margin-bottom: 14px;">
+          <i class="bi bi-tag-fill" style="color: #06b6d4;"></i> Nhập Dự Đoán Giá Của Các Đội
+        </h3>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; margin-bottom: 15px;">
+          <% session.teams.forEach(t => { %>
+            <div>
+              <label style="font-size: 0.85rem; color: <%= t.color %>; font-weight: 700;"><%= t.name %></label>
+              <input type="number" id="guess_<%= t.id %>" class="form-control" placeholder="VNĐ...">
+            </div>
+          <% }) %>
+        </div>
+        <div style="display: flex; gap: 10px;">
+          <button onclick="submitPriceGuesses()" class="btn-gameshow btn-primary" style="flex: 1;">
+            <i class="bi bi-calculator"></i> Tính Toán Đội Gần Nhất
+          </button>
+          <button onclick="revealActualPrice()" class="btn-gameshow btn-gold" style="flex: 1;">
+            <i class="bi bi-currency-dollar"></i> Công Bố Giá Đúng
+          </button>
+        </div>
+      </div>
+    <% } %>
+
+  </div>
+
+  <!-- CỘT PHẢI: ĐỒNG HỒ, XEM TRƯỚC MÁY CHIẾU & BẢNG ĐIỂM -->
+  <div style="display: flex; flex-direction: column; gap: 20px;">
+    
+    <!-- Đồng Hồ Đếm Ngược -->
+    <div class="glass-panel" style="padding: 20px; text-align: center;">
+      <div style="font-size: 0.85rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 8px;">
+        <i class="bi bi-stopwatch"></i> ĐỒNG HỒ ĐẾM NGƯỢC
+      </div>
+
+      <div id="timerDisplay" style="font-size: 3.5rem; font-weight: 900; color: var(--accent-gold); font-family: monospace; letter-spacing: 2px;">
+        00:<%= session.settings.time_limit < 10 ? '0' + session.settings.time_limit : session.settings.time_limit %>
+      </div>
+
+      <div style="display: flex; gap: 8px; justify-content: center; margin-top: 14px; flex-wrap: wrap;">
+        <button onclick="startTimer()" class="btn-gameshow btn-primary" style="padding: 8px 16px;">
+          <i class="bi bi-play-fill"></i> Bắt đầu
+        </button>
+        <button onclick="pauseTimer()" class="btn-gameshow btn-secondary" style="padding: 8px 16px;">
+          <i class="bi bi-pause-fill"></i> Tạm dừng
+        </button>
+        <button onclick="resetTimer()" class="btn-gameshow btn-secondary" style="padding: 8px 16px;">
+          <i class="bi bi-arrow-counterclockwise"></i> Đặt lại
+        </button>
+      </div>
+    </div>
+
+    <!-- Live Projector Mirror (Xem trước những gì máy chiếu đang chiếu) -->
+    <div class="glass-panel" style="padding: 16px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+        <span style="font-size: 0.85rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+          <i class="bi bi-display"></i> XEM TRƯỚC MÁY CHIẾU (16:9 LIVE)
+        </span>
+        <span class="badge badge-green" style="font-size: 0.7rem;"><i class="bi bi-circle-fill"></i> Live</span>
+      </div>
+
+      <div style="position: relative; width: 100%; padding-top: 56.25%; border-radius: 10px; overflow: hidden; border: 1px solid var(--border-color); background: #000;">
+        <iframe src="/display/<%= session.session_code %>" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; pointer-events: none;"></iframe>
+      </div>
+    </div>
+
+    <!-- Bảng Điểm & Hoàn Tác (Scoreboard & Undo) -->
+    <div class="glass-panel" style="padding: 20px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+        <h3 style="font-size: 1.1rem; font-weight: 700; color: #fff;">
+          <i class="bi bi-trophy-fill" style="color: var(--accent-gold);"></i> Bảng Điểm Các Đội
+        </h3>
+        <button onclick="undoScore()" id="undoBtn" class="btn-gameshow btn-secondary" style="padding: 6px 12px; font-size: 0.82rem;" title="Hoàn tác thao tác tính điểm gần nhất">
+          <i class="bi bi-arrow-counterclockwise"></i> Hoàn tác (Undo)
+        </button>
+      </div>
+
+      <div id="teamsScoreList" style="display: flex; flex-direction: column; gap: 12px;">
+        <% session.teams.forEach(team => { %>
+          <div style="padding: 12px; border-radius: 10px; background: rgba(255,255,255,0.03); border-left: 5px solid <%= team.color %>; display: flex; justify-content: space-between; align-items: center;">
+            <div>
+              <div style="font-weight: 700; color: #fff; font-size: 0.95rem;"><%= team.name %></div>
+              <div style="font-size: 1.4rem; font-weight: 800; color: var(--accent-gold);" id="score_<%= team.id %>">
+                <%= team.score %> <span style="font-size: 0.8rem; font-weight: 500; color: var(--text-muted);">đ</span>
+              </div>
+            </div>
+
+            <div style="display: flex; gap: 4px;">
+              <button onclick="adjustScore('<%= team.id %>', 10)" class="btn-gameshow btn-secondary" style="padding: 4px 8px; font-size: 0.78rem;">+10</button>
+              <button onclick="adjustScore('<%= team.id %>', 20)" class="btn-gameshow btn-secondary" style="padding: 4px 8px; font-size: 0.78rem;">+20</button>
+              <button onclick="adjustScore('<%= team.id %>', 40)" class="btn-gameshow btn-primary" style="padding: 4px 8px; font-size: 0.78rem;">+40</button>
+              <button onclick="adjustScore('<%= team.id %>', -10)" class="btn-gameshow btn-secondary" style="padding: 4px 8px; font-size: 0.78rem; color: var(--accent-red);">-10</button>
+            </div>
+          </div>
+        <% }) %>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  const socket = io();
+  const sessionId = '<%= session._id %>';
+  const sessionCode = '<%= session.session_code %>';
+  let currentIndex = <%= session.current_question_index %>;
+  const totalQuestions = <%= questions.length %>;
+
+  socket.on('connect', () => {
+    socket.emit('JOIN_HOST', { sessionId });
+  });
+
+  // Đồng hồ
+  function startTimer() {
+    socket.emit('START_TIMER', { sessionId, seconds: <%= session.settings.time_limit %> });
+  }
+
+  function pauseTimer() {
+    socket.emit('PAUSE_TIMER', { sessionId });
+  }
+
+  function resetTimer() {
+    socket.emit('RESET_TIMER', { sessionId, seconds: <%= session.settings.time_limit %> });
+  }
+
+  socket.on('TIMER_TICK', ({ remaining }) => {
+    const s = remaining < 10 ? '0' + remaining : remaining;
+    document.getElementById('timerDisplay').innerText = `00:${s}`;
+  });
+
+  socket.on('TIMER_EXPIRED', () => {
+    document.getElementById('timerDisplay').innerText = '00:00';
+  });
+
+  // Chuyển câu hỏi
+  function nextQuestion() {
+    if (currentIndex < totalQuestions - 1) {
+      currentIndex++;
+      socket.emit('CHANGE_QUESTION', { sessionId, index: currentIndex });
+    }
+  }
+
+  function prevQuestion() {
+    if (currentIndex > 0) {
+      currentIndex--;
+      socket.emit('CHANGE_QUESTION', { sessionId, index: currentIndex });
+    }
+  }
+
+  socket.on('QUESTION_CHANGED_HOST', ({ currentQuestionIndex, currentQuestion }) => {
+    window.location.reload(); // Reload để render lại chuẩn EJS
+  });
+
+  // Công bố đáp án
+  function revealAnswer() {
+    socket.emit('REVEAL_ANSWER', { sessionId });
+  }
+
+  // Chốt đáp án
+  function lockAnswerPrompt() {
+    const ans = prompt('Chốt phương án nào? (A, B, C, D)');
+    if (ans) {
+      socket.emit('LOCK_ANSWER', { sessionId, selectedAnswer: ans.toUpperCase() });
+    }
+  }
+
+  // Quyền trợ giúp
+  function triggerLifeline(lifeline) {
+    socket.emit('TRIGGER_LIFELINE', { sessionId, lifeline });
+  }
+
+  // Chiếc nón kỳ diệu
+  function spinWheelRandom() {
+    const randSector = Math.floor(Math.random() * 10);
+    socket.emit('SPIN_WHEEL', { sessionId, targetSectorIndex: randSector });
+  }
+
+  function promptRevealLetter() {
+    const l = prompt('Nhập chữ cái cần mở:');
+    if (l) socket.emit('REVEAL_LETTER', { sessionId, letter: l });
+  }
+
+  // Vượt chướng ngại vật
+  function revealPuzzlePiece(idx) {
+    socket.emit('REVEAL_PUZZLE_PIECE', { sessionId, pieceIndex: idx });
+  }
+
+  function revealFullPuzzle() {
+    if (confirm('Công bố toàn bộ bức tranh chướng ngại vật?')) {
+      socket.emit('REVEAL_FULL_PUZZLE', { sessionId });
+    }
+  }
+
+  // Ô chữ
+  function revealCurrentCrosswordRow() {
+    socket.emit('REVEAL_CROSSWORD_ROW', { sessionId, rowNumber: currentIndex + 1 });
+  }
+
+  function revealCrosswordKeyword() {
+    socket.emit('REVEAL_CROSSWORD_KEYWORD', { sessionId });
+  }
+
+  // Hãy chọn giá đúng
+  function submitPriceGuesses() {
+    const guesses = {};
+    <% session.teams.forEach(t => { %>
+      const val_<%= t.id %> = document.getElementById('guess_<%= t.id %>').value;
+      if (val_<%= t.id %>) guesses['<%= t.id %>'] = Number(val_<%= t.id %>);
+    <% }) %>
+    socket.emit('SUBMIT_PRICE_GUESSES', { sessionId, guesses });
+  }
+
+  function revealActualPrice() {
+    socket.emit('REVEAL_ACTUAL_PRICE', { sessionId });
+  }
+
+  // Bảng điểm
+  function adjustScore(teamId, delta) {
+    socket.emit('ADJUST_SCORE', { sessionId, teamId, delta, reason: `Cộng ${delta} điểm` });
+  }
+
+  function undoScore() {
+    socket.emit('UNDO_SCORE', { sessionId });
+  }
+
+  socket.on('SCORE_UPDATED', ({ teams }) => {
+    teams.forEach(t => {
+      const el = document.getElementById(`score_${t.id}`);
+      if (el) el.innerHTML = `${t.score} <span style="font-size: 0.8rem; font-weight: 500; color: var(--text-muted);">đ</span>`;
+    });
+  });
+
+  function endGame() {
+    if (confirm('Bạn có chắc muốn kết thúc phiên trò chơi này và xem bảng xếp hạng?')) {
+      socket.emit('END_GAME', { sessionId });
+      window.location.href = `/admin/sessions/${sessionId}/summary`;
+    }
+  }
+</script>

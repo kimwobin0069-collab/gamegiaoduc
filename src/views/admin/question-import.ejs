@@ -1,0 +1,83 @@
+<div style="margin-bottom: 25px;">
+  <h1 style="font-size: 2rem; font-weight: 800; letter-spacing: -0.5px;">Import Câu Hỏi Từ Excel / CSV / JSON</h1>
+  <p style="color: var(--text-muted); font-size: 1rem;">Tải lên danh sách câu hỏi hàng loạt. Hệ thống sẽ tự động kiểm tra cú pháp từng dòng trước khi lưu.</p>
+</div>
+
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; align-items: start;">
+  <!-- Cột trái: Form Upload -->
+  <div class="glass-panel" style="padding: 30px;">
+    <h2 style="font-size: 1.3rem; font-weight: 800; color: #fff; margin-bottom: 20px;">
+      <i class="bi bi-cloud-arrow-up-fill" style="color: var(--accent-cyan);"></i> Chọn Tệp Dữ Liệu
+    </h2>
+
+    <form method="POST" action="/admin/questions/import" enctype="multipart/form-data">
+      <div class="form-group">
+        <label class="form-label">Chọn bộ câu hỏi đích <span style="color: var(--accent-red)">*</span></label>
+        <select name="set_id" class="form-control" required id="setSelect">
+          <option value="">-- Chọn bộ câu hỏi cần nhập --</option>
+          <% sets.forEach(s => { %>
+            <option value="<%= s._id %>" data-game="<%= s.game_type_code %>">
+              <%= s.name %> (<%= s.game_type_code %>)
+            </option>
+          <% }) %>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Tệp dữ liệu (.xlsx, .csv, .json) <span style="color: var(--accent-red)">*</span></label>
+        <div style="border: 2px dashed var(--border-color); border-radius: 12px; padding: 30px 20px; text-align: center; background: rgba(0,0,0,0.2); cursor: pointer;" onclick="document.getElementById('fileInput').click()">
+          <i class="bi bi-file-earmark-excel" style="font-size: 3rem; color: var(--accent-green); display: block; margin-bottom: 10px;"></i>
+          <span id="fileNameDisplay" style="font-size: 0.95rem; color: var(--text-muted);">Nhấn để chọn file hoặc kéo thả file vào đây</span>
+          <input type="file" name="file" id="fileInput" accept=".xlsx, .xls, .csv, .json" required style="display: none;" onchange="document.getElementById('fileNameDisplay').innerText = this.files[0] ? this.files[0].name : 'Chưa chọn file'">
+        </div>
+      </div>
+
+      <button type="submit" class="btn-gameshow btn-primary" style="width: 100%; padding: 13px; font-size: 1.05rem; margin-top: 10px;">
+        <i class="bi bi-arrow-right-circle"></i> Tải Lên & Xem Trước Dữ Liệu
+      </button>
+    </form>
+  </div>
+
+  <!-- Cột phải: Hướng dẫn cấu trúc cột -->
+  <div class="glass-panel" style="padding: 30px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+      <h2 style="font-size: 1.3rem; font-weight: 800; color: #fff;">
+        <i class="bi bi-card-checklist" style="color: var(--accent-gold);"></i> Quy Chuẩn Cột Dữ Liệu
+      </h2>
+      <a href="/admin/templates" class="btn-gameshow btn-secondary" style="padding: 6px 12px; font-size: 0.85rem;">
+        <i class="bi bi-download"></i> Tải file mẫu chuẩn
+      </a>
+    </div>
+
+    <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 18px;">
+      Để đảm bảo import thành công, file Excel hoặc CSV phải chứa đúng tên các cột theo quy định dưới đây:
+    </p>
+
+    <div style="display: flex; flex-direction: column; gap: 14px; font-size: 0.88rem;">
+      <div style="padding: 12px; background: rgba(255,255,255,0.03); border-radius: 8px; border-left: 3px solid #3b82f6;">
+        <b style="color: #3b82f6;">1. Ai là triệu phú / Tăng tốc:</b><br>
+        <code>question, option_a, option_b, option_c, option_d, correct_answer, explanation, image, time_limit, points</code>
+      </div>
+
+      <div style="padding: 12px; background: rgba(255,255,255,0.03); border-radius: 8px; border-left: 3px solid #ec4899;">
+        <b style="color: #ec4899;">2. Chiếc nón kỳ diệu:</b><br>
+        <code>keyword, category, hint_1, hint_2, hint_3, image</code>
+      </div>
+
+      <div style="padding: 12px; background: rgba(255,255,255,0.03); border-radius: 8px; border-left: 3px solid #8b5cf6;">
+        <b style="color: #8b5cf6;">3. Vượt chướng ngại vật:</b><br>
+        <code>question, answer, explanation, tile_index, image, points</code>
+      </div>
+
+      <div style="padding: 12px; background: rgba(255,255,255,0.03); border-radius: 8px; border-left: 3px solid #10b981;">
+        <b style="color: #10b981;">4. Ô chữ bí mật:</b><br>
+        <code>clue, answer, keyword_position, row_number, hint, image</code>
+      </div>
+
+      <div style="padding: 12px; background: rgba(255,255,255,0.03); border-radius: 8px; border-left: 3px solid #06b6d4;">
+        <b style="color: #06b6d4;">5. Hãy chọn giá đúng:</b><br>
+        <code>item_name, description, image, correct_price, minimum_price, maximum_price, tolerance, unit</code>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,243 @@
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
+  <div>
+    <h1 style="font-size: 2rem; font-weight: 800; letter-spacing: -0.5px;">Nhập Câu Hỏi Thủ Công</h1>
+    <p style="color: var(--text-muted); font-size: 1rem;">Nhập từng câu hỏi và tinh chỉnh theo quy cách riêng của từng trò chơi.</p>
+  </div>
+  <div style="display: flex; gap: 10px;">
+    <a href="/admin/questions/import" class="btn-gameshow btn-secondary">
+      <i class="bi bi-file-earmark-arrow-up"></i> Import Excel
+    </a>
+    <a href="/admin/question-sets" class="btn-gameshow btn-secondary">
+      <i class="bi bi-arrow-left"></i> Quay lại
+    </a>
+  </div>
+</div>
+
+<!-- Bộ chọn bộ câu hỏi -->
+<div class="glass-panel" style="padding: 20px; margin-bottom: 25px;">
+  <form method="GET" action="/admin/questions/create" style="display: flex; gap: 15px; align-items: center;">
+    <label style="font-weight: 700; white-space: nowrap;"><i class="bi bi-folder-fill" style="color: var(--accent-gold);"></i> Chọn Bộ Câu Hỏi:</label>
+    <select name="set_id" class="form-control" onchange="this.form.submit()" style="flex: 1;">
+      <% if (!sets || sets.length === 0) { %>
+        <option value="">Chưa có bộ câu hỏi nào. Vui lòng tạo bộ câu hỏi trước.</option>
+      <% } else { %>
+        <% sets.forEach(s => { %>
+          <option value="<%= s._id %>" <%= currentSet && currentSet._id.toString() === s._id.toString() ? 'selected' : '' %>>
+            <%= s.name %> (<%= s.game_type_code %>) - <%= s.subject %>
+          </option>
+        <% }) %>
+      <% } %>
+    </select>
+  </form>
+</div>
+
+<% if (currentSet) { %>
+  <div style="display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 25px; align-items: start;">
+    
+    <!-- Cột trái: Form nhập câu hỏi -->
+    <div class="glass-panel" style="padding: 26px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">
+        <h2 style="font-size: 1.25rem; font-weight: 800; color: #fff;">
+          <i class="bi bi-plus-circle" style="color: var(--accent-cyan);"></i> Thêm Câu Hỏi Mới
+        </h2>
+        <span class="badge badge-cyan">Trò chơi: <%= currentSet.game_type_code %></span>
+      </div>
+
+      <form method="POST" action="/admin/questions/create">
+        <input type="hidden" name="set_id" value="<%= currentSet._id %>">
+
+        <!-- Form cho Ai là triệu phú hoặc Tăng tốc -->
+        <% if (currentSet.game_type_code === 'millionaire' || currentSet.game_type_code === 'acceleration') { %>
+          <div class="form-group">
+            <label class="form-label">Nội dung câu hỏi <span style="color: var(--accent-red)">*</span></label>
+            <textarea name="question_text" class="form-control" rows="3" placeholder="Nội dung câu hỏi..." required></textarea>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+            <div class="form-group">
+              <label class="form-label">Phương án A <span style="color: var(--accent-red)">*</span></label>
+              <input type="text" name="option_a" class="form-control" placeholder="Phương án A" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Phương án B <span style="color: var(--accent-red)">*</span></label>
+              <input type="text" name="option_b" class="form-control" placeholder="Phương án B" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Phương án C <span style="color: var(--accent-red)">*</span></label>
+              <input type="text" name="option_c" class="form-control" placeholder="Phương án C" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Phương án D <span style="color: var(--accent-red)">*</span></label>
+              <input type="text" name="option_d" class="form-control" placeholder="Phương án D" required>
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+            <div class="form-group">
+              <label class="form-label">Đáp án đúng <span style="color: var(--accent-red)">*</span></label>
+              <select name="correct_answer" class="form-control" required>
+                <option value="A">Phương án A</option>
+                <option value="B">Phương án B</option>
+                <option value="C">Phương án C</option>
+                <option value="D">Phương án D</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Thời gian (giây)</label>
+              <input type="number" name="time_limit" class="form-control" value="30" min="5" max="120">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Giải thích chi tiết (Gợi ý cho GV)</label>
+            <input type="text" name="explanation" class="form-control" placeholder="Giải thích vì sao phương án đó đúng...">
+          </div>
+
+        <!-- Form cho Chiếc nón kỳ diệu -->
+        <% } else if (currentSet.game_type_code === 'wheel') { %>
+          <div class="form-group">
+            <label class="form-label">Chủ đề từ khóa <span style="color: var(--accent-red)">*</span></label>
+            <input type="text" name="question_text" class="form-control" placeholder="Ví dụ: Tên danh nhân, Địa danh lịch sử..." required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Từ khóa bí mật (Viết hoa, có dấu hoặc không dấu) <span style="color: var(--accent-red)">*</span></label>
+            <input type="text" name="keyword" class="form-control" placeholder="TU KHOA BI MAT" required style="letter-spacing: 2px; font-weight: 700;">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Gợi ý 1</label>
+            <input type="text" name="hint_1" class="form-control" placeholder="Gợi ý mức độ 1">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Gợi ý 2</label>
+            <input type="text" name="hint_2" class="form-control" placeholder="Gợi ý mức độ 2">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Gợi ý 3</label>
+            <input type="text" name="hint_3" class="form-control" placeholder="Gợi ý mức độ 3">
+          </div>
+
+        <!-- Form cho Vượt chướng ngại vật -->
+        <% } else if (currentSet.game_type_code === 'obstacle') { %>
+          <div class="form-group">
+            <label class="form-label">Câu hỏi hàng ngang <span style="color: var(--accent-red)">*</span></label>
+            <textarea name="question_text" class="form-control" rows="2" placeholder="Nội dung câu hỏi..." required></textarea>
+          </div>
+          <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 15px;">
+            <div class="form-group">
+              <label class="form-label">Đáp án hàng ngang <span style="color: var(--accent-red)">*</span></label>
+              <input type="text" name="answer" class="form-control" placeholder="DAP AN" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Mảnh ghép số</label>
+              <input type="number" name="tile_index" class="form-control" value="<%= questions.length + 1 %>" min="1" max="10">
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Giải thích</label>
+            <input type="text" name="explanation" class="form-control" placeholder="Thông tin bổ sung">
+          </div>
+
+        <!-- Form cho Ô chữ bí mật -->
+        <% } else if (currentSet.game_type_code === 'crossword') { %>
+          <div class="form-group">
+            <label class="form-label">Câu gợi ý cho hàng ngang <span style="color: var(--accent-red)">*</span></label>
+            <textarea name="question_text" class="form-control" rows="2" placeholder="Gợi ý..." required></textarea>
+          </div>
+          <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 12px;">
+            <div class="form-group">
+              <label class="form-label">Đáp án <span style="color: var(--accent-red)">*</span></label>
+              <input type="text" name="answer" class="form-control" placeholder="DAP AN O CHU" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Vị trí chữ khóa <span style="color: var(--accent-red)">*</span></label>
+              <input type="number" name="keyword_position" class="form-control" value="1" min="1" required title="Chữ cái thứ mấy sẽ nằm trên cột từ khóa chính">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Hàng số</label>
+              <input type="number" name="row_number" class="form-control" value="<%= questions.length + 1 %>">
+            </div>
+          </div>
+
+        <!-- Form cho Hãy chọn giá đúng -->
+        <% } else if (currentSet.game_type_code === 'price_is_right') { %>
+          <div class="form-group">
+            <label class="form-label">Tên sản phẩm / thiết bị <span style="color: var(--accent-red)">*</span></label>
+            <input type="text" name="question_text" class="form-control" placeholder="Tên sản phẩm..." required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Mô tả đặc điểm sản phẩm</label>
+            <textarea name="description" class="form-control" rows="2" placeholder="Mô tả công dụng, tính năng..."></textarea>
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+            <div class="form-group">
+              <label class="form-label">Giá đúng thực tế (VNĐ) <span style="color: var(--accent-red)">*</span></label>
+              <input type="number" name="correct_price" class="form-control" placeholder="Ví dụ: 150000" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Mức chênh lệch cho phép</label>
+              <input type="number" name="tolerance" class="form-control" value="10000">
+            </div>
+          </div>
+        <% } %>
+
+        <button type="submit" class="btn-gameshow btn-primary" style="width: 100%; padding: 12px; margin-top: 10px;">
+          <i class="bi bi-plus-lg"></i> Thêm Câu Hỏi Vào Bộ
+        </button>
+      </form>
+    </div>
+
+    <!-- Cột phải: Danh sách câu hỏi hiện có trong bộ -->
+    <div class="glass-panel" style="padding: 24px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+        <h3 style="font-size: 1.15rem; font-weight: 700; color: #fff;">
+          <i class="bi bi-list-ol" style="color: var(--accent-gold);"></i> Danh Sách Câu Hỏi (<%= questions.length %>)
+        </h3>
+      </div>
+
+      <% if (questions.length === 0) { %>
+        <div style="text-align: center; padding: 40px 20px; color: var(--text-muted);">
+          <i class="bi bi-chat-square-dots" style="font-size: 2.5rem; display: block; margin-bottom: 10px;"></i>
+          Bộ câu hỏi này chưa có câu hỏi nào. Hãy nhập ở form bên trái hoặc import từ Excel!
+        </div>
+      <% } else { %>
+        <div style="display: flex; flex-direction: column; gap: 12px; max-height: 650px; overflow-y: auto; padding-right: 5px;">
+          <% questions.forEach((q, idx) => { %>
+            <div style="padding: 14px; border-radius: 10px; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.08); position: relative;">
+              <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                <span class="badge badge-gold" style="font-size: 0.75rem;">Câu <%= idx + 1 %></span>
+                <form method="POST" action="/admin/questions/<%= q._id %>/delete" onsubmit="return confirm('Xóa câu hỏi này?')">
+                  <button type="submit" style="background: none; border: none; color: var(--accent-red); cursor: pointer; font-size: 0.95rem;">
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </form>
+              </div>
+
+              <div style="font-weight: 600; color: #fff; margin: 8px 0; font-size: 0.95rem;">
+                <%= q.question_text %>
+              </div>
+
+              <% if (q.data) { %>
+                <div style="font-size: 0.85rem; color: var(--text-muted);">
+                  <% if (q.data.correct_answer) { %>
+                    <span style="color: var(--accent-green); font-weight: 700;">Đáp án: <%= q.data.correct_answer %></span> | 
+                  <% } %>
+                  <% if (q.data.keyword) { %>
+                    <span style="color: var(--accent-cyan); font-weight: 700;">Từ khóa: <%= q.data.keyword %></span> | 
+                  <% } %>
+                  <% if (q.data.answer) { %>
+                    <span style="color: var(--accent-cyan); font-weight: 700;">Đáp án: <%= q.data.answer %></span>
+                    <% if (q.data.keyword_position) { %> (Vị trí khóa: <%= q.data.keyword_position %>) <% } %> |
+                  <% } %>
+                  <% if (q.data.correct_price) { %>
+                    <span style="color: var(--accent-gold); font-weight: 700;">Giá: <%= Number(q.data.correct_price).toLocaleString() %> đ</span> | 
+                  <% } %>
+                </div>
+              <% } %>
+            </div>
+          <% }) %>
+        </div>
+      <% } %>
+    </div>
+
+  </div>
+<% } %>

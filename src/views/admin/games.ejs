@@ -1,0 +1,38 @@
+<div style="margin-bottom: 30px;">
+  <h1 style="font-size: 2rem; font-weight: 800; letter-spacing: -0.5px;">6 Trò Chơi Học Tập Lớp Học</h1>
+  <p style="color: var(--text-muted); font-size: 1rem;">Mỗi trò chơi được lập trình chuyên sâu với phong cách riêng biệt, luật chơi chuẩn xác và hỗ trợ thiết bị máy chiếu 16:9.</p>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 24px;">
+  <% gameTypes.forEach(gt => { %>
+    <div class="glass-panel" style="padding: 28px; display: grid; grid-template-columns: 80px 1fr auto; gap: 24px; align-items: center; border-left: 6px solid <%= gt.color %>;">
+      <div style="width: 70px; height: 70px; border-radius: 16px; background: <%= gt.color %>22; display: flex; align-items: center; justify-content: center; font-size: 2.2rem; color: <%= gt.color %>;">
+        <i class="bi <%= gt.icon %>"></i>
+      </div>
+
+      <div>
+        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
+          <h2 style="font-size: 1.4rem; font-weight: 800; color: #fff;"><%= gt.name %></h2>
+          <span class="badge" style="background: <%= gt.color %>22; color: <%= gt.color %>; border: 1px solid <%= gt.color %>55;">Mã: <%= gt.code %></span>
+        </div>
+        <p style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 12px; line-height: 1.5;">
+          <%= gt.description %>
+        </p>
+        <div style="font-size: 0.85rem; color: var(--accent-cyan); display: flex; gap: 20px;">
+          <span><i class="bi bi-aspect-ratio"></i> Tỉ lệ: 16:9 Cinema</span>
+          <span><i class="bi bi-soundwave"></i> Âm thanh: Tích hợp Web Audio</span>
+          <span><i class="bi bi-file-earmark-excel"></i> Hỗ trợ Import: Excel, CSV, JSON</span>
+        </div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 10px; min-width: 170px;">
+        <a href="/admin/sessions/create?game=<%= gt.code %>" class="btn-gameshow btn-gold" style="justify-content: center;">
+          <i class="bi bi-play-circle-fill"></i> Tạo Phiên Chơi
+        </a>
+        <a href="/admin/templates/download/<%= gt.code %>" class="btn-gameshow btn-secondary" style="justify-content: center; font-size: 0.85rem;">
+          <i class="bi bi-download"></i> Tải File Mẫu
+        </a>
+      </div>
+    </div>
+  <% }) %>
+</div>

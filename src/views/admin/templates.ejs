@@ -1,0 +1,43 @@
+<div style="margin-bottom: 25px;">
+  <h1 style="font-size: 2rem; font-weight: 800; letter-spacing: -0.5px;">Tải File Mẫu Import Câu Hỏi</h1>
+  <p style="color: var(--text-muted); font-size: 1rem;">
+    Mỗi trò chơi có cấu trúc cột riêng biệt. Thầy/Cô hãy tải file mẫu chuẩn (.xlsx) dưới đây và điền câu hỏi trước khi import.
+  </p>
+</div>
+
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 24px;">
+  <% templates.forEach(t => { %>
+    <div class="glass-panel" style="padding: 26px; display: flex; flex-direction: column; justify-content: space-between;">
+      <div>
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
+          <div>
+            <h2 style="font-size: 1.25rem; font-weight: 800; color: #fff;"><%= t.name %></h2>
+            <div style="font-size: 0.85rem; color: var(--accent-cyan); margin-top: 2px;">
+              <i class="bi bi-file-earmark-excel"></i> <%= t.filename %>
+            </div>
+          </div>
+          <span class="badge badge-gold">.XLSX</span>
+        </div>
+
+        <div style="margin: 18px 0;">
+          <div style="font-size: 0.85rem; font-weight: 700; color: var(--text-muted); margin-bottom: 8px; text-transform: uppercase;">
+            CÁC CỘT TIÊU ĐỀ BẮT BUỘC:
+          </div>
+          <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+            <% t.columns.forEach(col => { %>
+              <span class="badge" style="background: rgba(255,255,255,0.06); color: #e2e8f0; font-family: monospace; font-size: 0.8rem; text-transform: none;">
+                <%= col %>
+              </span>
+            <% }) %>
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-top: 15px;">
+        <a href="/admin/templates/download/<%= t.code %>" class="btn-gameshow btn-primary" style="width: 100%; justify-content: center; padding: 11px;">
+          <i class="bi bi-download"></i> Tải File Mẫu Chuẩn (.xlsx)
+        </a>
+      </div>
+    </div>
+  <% }) %>
+</div>

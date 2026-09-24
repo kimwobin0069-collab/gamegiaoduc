@@ -1,0 +1,455 @@
+<div class="projector-container" style="display: flex; flex-direction: column; height: 100vh; width: 100vw; justify-content: space-between; padding: 25px 40px; box-sizing: border-box; position: relative;">
+  
+  <!-- Top Bar: Game Title, Session Code & Fullscreen -->
+  <div style="display: flex; justify-content: space-between; align-items: center; z-index: 10;">
+    <div style="display: flex; align-items: center; gap: 15px;">
+      <div style="width: 50px; height: 50px; border-radius: 12px; background: <%= gameType.color %>33; border: 1px solid <%= gameType.color %>88; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; color: <%= gameType.color %>;">
+        <i class="bi <%= gameType.icon %>"></i>
+      </div>
+      <div>
+        <h1 style="font-size: 1.6rem; font-weight: 800; color: #fff; margin: 0; letter-spacing: 0.5px;"><%= gameType.name %></h1>
+        <div style="font-size: 0.9rem; color: var(--text-muted);">
+          Phòng thi: <b style="color: var(--accent-gold); font-size: 1.1rem; letter-spacing: 2px;"><%= session.session_code %></b>
+        </div>
+      </div>
+    </div>
+
+    <!-- Timer & Controls -->
+    <div style="display: flex; align-items: center; gap: 25px;">
+      <div id="projectorTimerRing" style="position: relative; width: 85px; height: 85px; display: flex; align-items: center; justify-content: center;">
+        <svg style="width: 85px; height: 85px; transform: rotate(-90deg);">
+          <circle cx="42.5" cy="42.5" r="36" stroke="rgba(255,255,255,0.1)" stroke-width="6" fill="none" />
+          <circle id="timerCircle" cx="42.5" cy="42.5" r="36" stroke="var(--accent-cyan)" stroke-width="6" fill="none" stroke-dasharray="226" stroke-dashoffset="0" stroke-linecap="round" style="transition: stroke-dashoffset 1s linear, stroke 0.3s ease;" />
+        </svg>
+        <span id="projectorTimerText" style="position: absolute; font-size: 1.6rem; font-weight: 900; font-family: monospace; color: #fff;">
+          <%= session.settings.time_limit %>
+        </span>
+      </div>
+
+      <button onclick="toggleFullScreen()" class="btn-gameshow btn-secondary" style="padding: 10px 14px; font-size: 1.1rem; border-radius: 50%;" title="Toàn màn hình">
+        <i class="bi bi-arrows-fullscreen"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- STAGE: NỘI DUNG 6 TRÒ CHƠI -->
+  <div id="gameStage" style="flex: 1; display: flex; align-items: center; justify-content: center; margin: 20px 0; width: 100%;">
+    
+    <!-- 1. AI LÀ TRIỆU PHÚ -->
+    <% if (session.game_type_code === 'millionaire') { %>
+      <div style="width: 100%; max-width: 1200px; display: grid; grid-template-columns: 1fr 240px; gap: 35px; align-items: center;">
+        <div style="display: flex; flex-direction: column; gap: 25px;">
+          <!-- Khung câu hỏi vát cạnh hoàng gia -->
+          <div class="glass-panel" style="padding: 30px 40px; border-radius: 20px; border: 2px solid var(--accent-cyan); background: radial-gradient(circle at center, #152247 0%, #0a1128 100%); text-align: center; box-shadow: 0 0 35px rgba(0, 242, 254, 0.25);">
+            <div id="mQuestionText" style="font-size: 1.8rem; font-weight: 700; color: #fff; line-height: 1.4;">
+              <%= initialData.currentQuestion ? initialData.currentQuestion.question_text : 'Đang chuẩn bị câu hỏi...' %>
+            </div>
+          </div>
+
+          <!-- 4 Phương án -->
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+            <% ['A', 'B', 'C', 'D'].forEach(opt => { %>
+              <div id="optionCard_<%= opt %>" class="glass-panel option-box" style="padding: 20px 25px; border-radius: 14px; display: flex; align-items: center; gap: 15px; border: 1.5px solid rgba(255,255,255,0.15); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);">
+                <span class="badge badge-cyan" style="font-size: 1.1rem; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; border-radius: 8px;">
+                  <%= opt %>
+                </span>
+                <span id="optText_<%= opt %>" style="font-size: 1.3rem; font-weight: 600; color: #fff;">
+                  <%= initialData.currentQuestion && initialData.currentQuestion.data ? initialData.currentQuestion.data['option_' + opt.toLowerCase()] : '' %>
+                </span>
+              </div>
+            <% }) %>
+          </div>
+        </div>
+
+        <!-- Thang điểm bên phải -->
+        <div class="glass-panel" style="padding: 20px 15px; border-radius: 16px; display: flex; flex-direction: column-reverse; gap: 5px;">
+          <% [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15].forEach(step => { %>
+            <div class="ladder-step <%= step === initialData.currentQuestionIndex + 1 ? 'active-step' : '' %>" style="padding: 5px 12px; border-radius: 6px; font-size: 0.88rem; font-weight: 700; display: flex; justify-content: space-between; color: <%= (step === 5 || step === 10 || step === 15) ? 'var(--accent-gold)' : 'var(--text-muted)' %>; <%= step === initialData.currentQuestionIndex + 1 ? 'background: rgba(0, 242, 254, 0.2); color: #fff; border: 1px solid var(--accent-cyan);' : '' %>">
+              <span><%= step %></span>
+              <span><%= (step * 100).toLocaleString() %> đ</span>
+            </div>
+          <% }) %>
+        </div>
+      </div>
+
+    <!-- 2. CHIẾC NÓN KỲ DIỆU -->
+    <% } else if (session.game_type_code === 'wheel') { %>
+      <div style="width: 100%; max-width: 1200px; display: grid; grid-template-columns: 480px 1fr; gap: 40px; align-items: center;">
+        <!-- Canvas Vòng quay -->
+        <div style="position: relative; display: flex; justify-content: center; align-items: center;">
+          <canvas id="wheelCanvas" width="460" height="460" style="filter: drop-shadow(0 0 25px rgba(0,0,0,0.6));"></canvas>
+          <!-- Mũi tên chỉ ô -->
+          <div style="position: absolute; right: 0px; top: 50%; transform: translateY(-50%); width: 0; height: 0; border-top: 18px solid transparent; border-bottom: 18px solid transparent; border-right: 32px solid var(--accent-gold); filter: drop-shadow(-2px 0 5px rgba(0,0,0,0.5));"></div>
+        </div>
+
+        <!-- Ô chữ từ khóa -->
+        <div style="display: flex; flex-direction: column; gap: 30px;">
+          <div>
+            <div style="font-size: 1.1rem; color: var(--accent-cyan); font-weight: 700; text-transform: uppercase; margin-bottom: 8px;">CHỦ ĐỀ TỪ KHÓA:</div>
+            <div style="font-size: 1.8rem; font-weight: 800; color: #fff;"><%= initialData.currentQuestion ? initialData.currentQuestion.question_text : '' %></div>
+          </div>
+
+          <!-- Các ô chữ cái -->
+          <div id="wheelLetterBoxes" style="display: flex; flex-wrap: wrap; gap: 12px;">
+            <!-- JS sinh ô chữ -->
+          </div>
+
+          <!-- Bảng chữ cái tiếng Việt -->
+          <div id="vnAlphabetBoard" style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 15px;">
+            <!-- JS sinh 29 chữ cái -->
+          </div>
+        </div>
+      </div>
+
+    <!-- 3. VƯỢT CHƯỚNG NGẠI VẬT -->
+    <% } else if (session.game_type_code === 'obstacle') { %>
+      <div style="width: 100%; max-width: 1100px; display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: center;">
+        <!-- Bức tranh mảnh ghép -->
+        <div style="position: relative; width: 480px; height: 360px; border-radius: 16px; overflow: hidden; box-shadow: 0 0 30px rgba(0,0,0,0.7); border: 2px solid var(--border-color);">
+          <!-- Ảnh nền bí mật -->
+          <div id="secretImageLayer" style="position: absolute; inset: 0; background: url('https://picsum.photos/600/400?blur=1') center/cover; opacity: 0.15; transition: opacity 1s ease;"></div>
+          <!-- 4 Mảnh ghép che phủ -->
+          <div style="position: absolute; inset: 0; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 4px; padding: 4px;">
+            <% for (let i = 1; i <= 4; i++) { %>
+              <div id="puzzleTile_<%= i %>" class="glass-panel" style="display: flex; align-items: center; justify-content: center; font-size: 2.2rem; font-weight: 900; color: var(--accent-cyan); background: #0e1733; border: 2px solid rgba(0, 242, 254, 0.4); transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1); cursor: pointer;">
+                <span><%= i %></span>
+              </div>
+            <% } %>
+          </div>
+        </div>
+
+        <!-- Câu hỏi hàng ngang -->
+        <div style="display: flex; flex-direction: column; gap: 20px;">
+          <span class="badge badge-gold" style="font-size: 1rem; width: fit-content;">HÀNG NGANG HIỆN TẠI</span>
+          <div class="glass-panel" style="padding: 30px; border-radius: 18px; border: 2px solid var(--accent-purple);">
+            <div id="obstacleQuestionText" style="font-size: 1.6rem; font-weight: 700; color: #fff; line-height: 1.4;">
+              <%= initialData.currentQuestion ? initialData.currentQuestion.question_text : '' %>
+            </div>
+            <div id="obstacleAnswerRevealed" style="font-size: 1.8rem; font-weight: 800; color: var(--accent-green); margin-top: 15px; display: none;"></div>
+          </div>
+        </div>
+      </div>
+
+    <!-- 4. TĂNG TỐC -->
+    <% } else if (session.game_type_code === 'acceleration') { %>
+      <div style="width: 100%; max-width: 1050px; display: flex; flex-direction: column; gap: 30px; text-align: center;">
+        <span class="badge badge-gold" style="font-size: 1.1rem; padding: 8px 20px; align-self: center;">
+          <i class="bi bi-lightning-charge-fill"></i> PHẦN THI TĂNG TỐC
+        </span>
+
+        <div class="glass-panel" style="padding: 40px; border-radius: 20px; border: 2px solid var(--accent-gold); box-shadow: 0 0 30px rgba(255, 215, 0, 0.25);">
+          <div id="accQuestionText" style="font-size: 2rem; font-weight: 800; color: #fff; line-height: 1.4;">
+            <%= initialData.currentQuestion ? initialData.currentQuestion.question_text : '' %>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+          <% ['A', 'B', 'C', 'D'].forEach(opt => { %>
+            <div id="accOpt_<%= opt %>" class="glass-panel" style="padding: 20px; border-radius: 14px; display: flex; align-items: center; gap: 15px; border: 1.5px solid rgba(255,255,255,0.15);">
+              <span class="badge badge-gold" style="font-size: 1.1rem;"><%= opt %></span>
+              <span style="font-size: 1.3rem; font-weight: 600; color: #fff;">
+                <%= initialData.currentQuestion && initialData.currentQuestion.data ? initialData.currentQuestion.data['option_' + opt.toLowerCase()] : '' %>
+              </span>
+            </div>
+          <% }) %>
+        </div>
+      </div>
+
+    <!-- 5. Ô CHỮ BÍ MẬT -->
+    <% } else if (session.game_type_code === 'crossword') { %>
+      <div style="width: 100%; max-width: 1200px; display: flex; flex-direction: column; gap: 25px; align-items: center;">
+        <div id="crosswordGridContainer" style="display: flex; flex-direction: column; gap: 8px;">
+          <!-- JS sinh lưới ô chữ động -->
+        </div>
+        <div id="crosswordClueBox" class="glass-panel" style="padding: 16px 30px; border-radius: 14px; text-align: center; max-width: 900px; border: 1px solid var(--accent-cyan);">
+          <span style="color: var(--accent-cyan); font-weight: 700;">GỢI Ý:</span> 
+          <span id="crosswordClueText" style="font-size: 1.3rem; font-weight: 600; color: #fff;">
+            <%= initialData.currentQuestion ? initialData.currentQuestion.question_text : 'Chọn một hàng ngang' %>
+          </span>
+        </div>
+      </div>
+
+    <!-- 6. HÃY CHỌN GIÁ ĐÚNG -->
+    <% } else if (session.game_type_code === 'price_is_right') { %>
+      <div style="width: 100%; max-width: 1100px; display: grid; grid-template-columns: 1fr 1.2fr; gap: 40px; align-items: center;">
+        <div class="glass-panel" style="padding: 30px; border-radius: 20px; text-align: center;">
+          <div style="width: 100%; height: 260px; border-radius: 14px; background: rgba(255,255,255,0.05); display: flex; align-items: center; justify-content: center; font-size: 5rem; color: var(--accent-cyan); margin-bottom: 20px;">
+            <i class="bi bi-box-seam"></i>
+          </div>
+          <h2 style="font-size: 1.6rem; font-weight: 800; color: #fff;"><%= initialData.currentQuestion ? initialData.currentQuestion.question_text : '' %></h2>
+          <p style="color: var(--text-muted); font-size: 0.95rem; margin-top: 8px;">
+            <%= initialData.currentQuestion && initialData.currentQuestion.data ? initialData.currentQuestion.data.description : '' %>
+          </p>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 20px;">
+          <div class="glass-panel" style="padding: 30px; border-radius: 20px; text-align: center; border: 2px solid var(--accent-gold);">
+            <div style="font-size: 1rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase;">GIÁ ĐÚNG THỰC TẾ</div>
+            <div id="priceDisplayReal" style="font-size: 3.5rem; font-weight: 900; color: var(--accent-gold); font-family: monospace; letter-spacing: 2px;">
+              ??? VNĐ
+            </div>
+          </div>
+
+          <div id="teamGuessesDisplay" style="display: flex; flex-direction: column; gap: 10px;">
+            <!-- JS hiển thị giá đoán của từng đội -->
+          </div>
+        </div>
+      </div>
+    <% } %>
+
+  </div>
+
+  <!-- Bottom Bar: Live Team Scores Ticker -->
+  <div class="glass-panel" style="padding: 14px 30px; border-radius: 18px; display: flex; justify-content: space-around; align-items: center; background: rgba(10, 17, 40, 0.9);">
+    <% initialData.teams.forEach(t => { %>
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <div style="width: 14px; height: 14px; border-radius: 50%; background: <%= t.color %>; box-shadow: 0 0 10px <%= t.color %>;"></div>
+        <span style="font-size: 1.15rem; font-weight: 700; color: #fff;"><%= t.name %>:</span>
+        <span id="displayScore_<%= t.id %>" style="font-size: 1.6rem; font-weight: 900; color: var(--accent-gold);">
+          <%= t.score %>
+        </span>
+        <span style="font-size: 0.85rem; color: var(--text-muted);">đ</span>
+      </div>
+    <% }) %>
+  </div>
+
+</div>
+
+<script>
+  const socket = io();
+  const sessionCode = '<%= session.session_code %>';
+  let totalTime = <%= session.settings.time_limit %>;
+
+  socket.on('connect', () => {
+    socket.emit('JOIN_DISPLAY', { sessionCode });
+  });
+
+  // Toàn màn hình
+  function toggleFullScreen() {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().catch(() => {});
+    } else {
+      if (document.exitFullscreen) document.exitFullscreen();
+    }
+  }
+
+  // Đồng hồ
+  socket.on('TIMER_START', ({ remaining, total }) => {
+    totalTime = total;
+    updateTimerVisual(remaining, total);
+    window.gameshowAudio.playTick();
+  });
+
+  socket.on('TIMER_TICK', ({ remaining, total }) => {
+    updateTimerVisual(remaining, total);
+    if (remaining <= 5 && remaining > 0) {
+      window.gameshowAudio.playUrgentTick();
+      document.getElementById('projectorTimerRing').classList.add('urgent-pulse');
+    } else {
+      window.gameshowAudio.playTick();
+      document.getElementById('projectorTimerRing').classList.remove('urgent-pulse');
+    }
+  });
+
+  socket.on('TIMER_EXPIRED', () => {
+    document.getElementById('projectorTimerText').innerText = '0';
+    document.getElementById('projectorTimerRing').classList.remove('urgent-pulse');
+    window.gameshowAudio.playTimeUp();
+  });
+
+  function updateTimerVisual(remaining, total) {
+    document.getElementById('projectorTimerText').innerText = remaining;
+    const circle = document.getElementById('timerCircle');
+    const perimeter = 2 * Math.PI * 36; // 226
+    const offset = perimeter - (remaining / total) * perimeter;
+    circle.style.strokeDashoffset = offset;
+
+    if (remaining <= 5) {
+      circle.style.stroke = 'var(--accent-red)';
+    } else {
+      circle.style.stroke = 'var(--accent-cyan)';
+    }
+  }
+
+  // Chuyển câu hỏi
+  socket.on('QUESTION_CHANGED_DISPLAY', (sanitized) => {
+    window.location.reload();
+  });
+
+  // Chốt đáp án (Ai là triệu phú)
+  socket.on('ANSWER_LOCKED', ({ selectedAnswer }) => {
+    window.gameshowAudio.playLock();
+    const card = document.getElementById(`optionCard_${selectedAnswer}`);
+    if (card) {
+      card.style.borderColor = 'var(--accent-gold)';
+      card.style.background = 'rgba(255, 215, 0, 0.2)';
+      card.classList.add('pulse-glow');
+    }
+  });
+
+  // Công bố đáp án
+  socket.on('ANSWER_REVEALED', ({ correctAnswer, explanation }) => {
+    window.gameshowAudio.playCorrect();
+    confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+
+    // Đổi màu cho Ai là triệu phú / Tăng tốc
+    const card = document.getElementById(`optionCard_${correctAnswer}`) || document.getElementById(`accOpt_${correctAnswer}`);
+    if (card) {
+      card.style.borderColor = 'var(--accent-green)';
+      card.style.background = 'rgba(16, 185, 129, 0.35)';
+      card.style.boxShadow = '0 0 30px rgba(16, 185, 129, 0.6)';
+    }
+    const ansObstacle = document.getElementById('obstacleAnswerRevealed');
+    if (ansObstacle) {
+      ansObstacle.innerText = `ĐÁP ÁN: ${correctAnswer}`;
+      ansObstacle.style.display = 'block';
+    }
+  });
+
+  // Quyền trợ giúp
+  socket.on('LIFELINE_APPLIED', ({ lifeline, hiddenOptions, poll, hint }) => {
+    if (lifeline === '50:50' && hiddenOptions) {
+      hiddenOptions.forEach(opt => {
+        const c = document.getElementById(`optionCard_${opt}`);
+        if (c) c.style.opacity = '0.15';
+      });
+      window.gameshowAudio.playTone(400, 'sine', 0.4);
+    }
+  });
+
+  // Mảnh ghép
+  socket.on('PUZZLE_PIECE_REVEALED', ({ pieceIndex }) => {
+    const tile = document.getElementById(`puzzleTile_${pieceIndex}`);
+    if (tile) {
+      tile.style.opacity = '0';
+      tile.style.transform = 'scale(0.8) rotateY(90deg)';
+      window.gameshowAudio.playTone(600, 'triangle', 0.3);
+    }
+  });
+
+  socket.on('FULL_PUZZLE_REVEALED', () => {
+    for (let i = 1; i <= 4; i++) {
+      const tile = document.getElementById(`puzzleTile_${i}`);
+      if (tile) tile.style.opacity = '0';
+    }
+    const layer = document.getElementById('secretImageLayer');
+    if (layer) layer.style.opacity = '1';
+    window.gameshowAudio.playFanfare();
+    confetti({ particleCount: 200, spread: 100 });
+  });
+
+  // Hãy chọn giá đúng
+  socket.on('PRICE_GUESSES_EVALUATED', ({ guesses, closestTeamId }) => {
+    const container = document.getElementById('teamGuessesDisplay');
+    if (container) {
+      container.innerHTML = '';
+      for (const [tId, price] of Object.entries(guesses)) {
+        const isWinner = tId === closestTeamId;
+        const div = document.createElement('div');
+        div.className = 'glass-panel';
+        div.style.padding = '12px 20px';
+        div.style.display = 'flex';
+        div.style.justifyContent = 'space-between';
+        div.style.borderColor = isWinner ? 'var(--accent-gold)' : 'var(--border-color)';
+        div.style.background = isWinner ? 'rgba(255, 215, 0, 0.15)' : 'rgba(255,255,255,0.03)';
+        div.innerHTML = `
+          <span style="font-weight: 700; color: #fff;">Đội: ${tId}</span>
+          <span style="font-weight: 800; color: ${isWinner ? 'var(--accent-gold)' : '#fff'}; font-size: 1.2rem;">
+            ${Number(price).toLocaleString()} đ ${isWinner ? '⭐ GẦN NHẤT' : ''}
+          </span>
+        `;
+        container.appendChild(div);
+      }
+    }
+  });
+
+  socket.on('ACTUAL_PRICE_REVEALED', ({ actualPrice }) => {
+    const p = document.getElementById('priceDisplayReal');
+    if (p) {
+      p.innerText = `${Number(actualPrice).toLocaleString()} VNĐ`;
+      window.gameshowAudio.playFanfare();
+      confetti({ particleCount: 150 });
+    }
+  });
+
+  // Khởi tạo vòng quay cho Chiếc nón kỳ diệu
+  <% if (session.game_type_code === 'wheel') { %>
+    const sectors = <%- JSON.stringify(gameType.default_config.sectors || []) %>;
+    let wheelObj = null;
+    if (typeof initWheel === 'function') {
+      wheelObj = initWheel('wheelCanvas', sectors, (wonSector) => {
+        window.gameshowAudio.playCorrect();
+      });
+    }
+
+    socket.on('WHEEL_SPIN_START', ({ targetSectorIndex }) => {
+      if (wheelObj) wheelObj.spin(targetSectorIndex, 4000);
+    });
+
+    socket.on('LETTER_REVEALED', ({ letter, isCorrect, matchIndices }) => {
+      if (isCorrect) {
+        window.gameshowAudio.playCorrect();
+        matchIndices.forEach(idx => {
+          const b = document.getElementById(`box_${idx}`);
+          if (b) {
+            b.innerText = letter;
+            b.style.background = 'rgba(16, 185, 129, 0.3)';
+            b.style.borderColor = 'var(--accent-green)';
+          }
+        });
+      } else {
+        window.gameshowAudio.playWrong();
+      }
+    });
+  <% } %>
+
+  // Khởi tạo lưới ô chữ cho Ô chữ bí mật
+  <% if (session.game_type_code === 'crossword') { %>
+    const crosswordGridData = <%- JSON.stringify(initialData.crosswordGrid || {}) %>;
+    if (typeof renderCrosswordGrid === 'function') {
+      renderCrosswordGrid('crosswordGridContainer', crosswordGridData);
+    }
+
+    socket.on('CROSSWORD_ROW_REVEALED', ({ rowNumber, answer }) => {
+      window.gameshowAudio.playCorrect();
+      // Lật mở chữ cái của cả hàng
+      const cleanLetters = answer.replace(/\s+/g, '').split('');
+      cleanLetters.forEach((ch, idx) => {
+        const cell = document.getElementById(`cell_${rowNumber}_${idx}`);
+        if (cell) {
+          cell.innerText = ch;
+          cell.style.background = 'rgba(16, 185, 129, 0.3)';
+          cell.style.borderColor = 'var(--accent-green)';
+        }
+      });
+    });
+
+    socket.on('CROSSWORD_KEYWORD_REVEALED', () => {
+      window.gameshowAudio.playFanfare();
+      confetti({ particleCount: 200 });
+      document.querySelectorAll('[id^="cell_"]').forEach(el => {
+        if (el.style.borderColor.includes('255, 215, 0')) {
+          el.style.background = 'rgba(255, 215, 0, 0.5)';
+          el.classList.add('pulse-glow');
+        }
+      });
+    });
+  <% } %>
+
+  // Cập nhật điểm
+  socket.on('SCORE_UPDATED', ({ teams }) => {
+    teams.forEach(t => {
+      const el = document.getElementById(`displayScore_${t.id}`);
+      if (el) el.innerText = t.score;
+    });
+  });
+
+  // Kết thúc trò chơi
+  socket.on('GAME_ENDED', ({ summaryUrl }) => {
+    window.gameshowAudio.playFanfare();
+    confetti({ particleCount: 300, spread: 120 });
+    setTimeout(() => {
+      window.location.href = summaryUrl;
+    }, 3000);
+  });
+</script>

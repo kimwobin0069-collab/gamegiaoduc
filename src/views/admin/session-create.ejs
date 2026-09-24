@@ -1,0 +1,173 @@
+<div style="margin-bottom: 25px;">
+  <h1 style="font-size: 2rem; font-weight: 800; letter-spacing: -0.5px;">Thiết Lập Phiên Trò Chơi Mới</h1>
+  <p style="color: var(--text-muted); font-size: 1rem;">Cài đặt luật chơi, số lượng đội tham gia và cấu hình thời gian thi đấu cho lớp học.</p>
+</div>
+
+<form method="POST" action="/admin/sessions/create" id="sessionForm">
+  <div style="display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 30px; align-items: start;">
+    
+    <!-- Cột trái: Chọn Trò Chơi & Bộ Câu Hỏi -->
+    <div style="display: flex; flex-direction: column; gap: 24px;">
+      <!-- Chọn Trò Chơi -->
+      <div class="glass-panel" style="padding: 26px;">
+        <h2 style="font-size: 1.25rem; font-weight: 800; color: #fff; margin-bottom: 18px;">
+          <i class="bi bi-controller" style="color: var(--accent-cyan);"></i> 1. Chọn Loại Trò Chơi
+        </h2>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+          <% gameTypes.forEach((gt, idx) => { %>
+            <label style="display: flex; align-items: center; gap: 12px; padding: 14px; border-radius: 12px; background: rgba(255,255,255,0.03); border: 2px solid var(--border-color); cursor: pointer; transition: all 0.2s ease;" class="game-choice-label">
+              <input type="radio" name="game_type_code" value="<%= gt.code %>" <%= idx === 0 ? 'checked' : '' %> onchange="filterQuestionSets()" style="accent-color: var(--accent-cyan); transform: scale(1.2);">
+              <div>
+                <div style="font-weight: 700; color: #fff; font-size: 0.95rem;"><%= gt.name %></div>
+                <div style="font-size: 0.8rem; color: var(--text-muted);"><%= gt.code %></div>
+              </div>
+            </label>
+          <% }) %>
+        </div>
+      </div>
+
+      <!-- Chọn Bộ Câu Hỏi -->
+      <div class="glass-panel" style="padding: 26px;">
+        <h2 style="font-size: 1.25rem; font-weight: 800; color: #fff; margin-bottom: 18px;">
+          <i class="bi bi-collection-fill" style="color: var(--accent-gold);"></i> 2. Chọn Bộ Câu Hỏi
+        </h2>
+
+        <div class="form-group">
+          <label class="form-label">Bộ câu hỏi áp dụng</label>
+          <select name="question_set_id" class="form-control" required id="questionSetSelect">
+            <% questionSets.forEach(qs => { %>
+              <option value="<%= qs._id %>" data-game="<%= qs.game_type_code %>">
+                <%= qs.name %> (<%= qs.actual_count %> câu) - <%= qs.subject %>
+              </option>
+            <% }) %>
+          </select>
+        </div>
+
+        <div style="display: flex; gap: 15px; margin-top: 15px;">
+          <label style="display: flex; align-items: center; gap: 8px; color: var(--text-muted); font-size: 0.9rem; cursor: pointer;">
+            <input type="checkbox" name="random_order" style="accent-color: var(--accent-cyan);"> Chọn câu hỏi theo thứ tự ngẫu nhiên
+          </label>
+        </div>
+      </div>
+
+      <!-- Cấu hình nâng cao -->
+      <div class="glass-panel" style="padding: 26px;">
+        <h2 style="font-size: 1.25rem; font-weight: 800; color: #fff; margin-bottom: 18px;">
+          <i class="bi bi-gear-fill" style="color: var(--accent-purple);"></i> 3. Cấu Hình Thi Đấu & Hiệu Ứng
+        </h2>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+          <div class="form-group">
+            <label class="form-label">Thời gian mỗi câu (giây)</label>
+            <input type="number" name="time_limit" class="form-control" value="30" min="5" max="180">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Điểm khởi đầu mỗi đội</label>
+            <input type="number" name="initial_score" class="form-control" value="0" min="0">
+          </div>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <label style="display: flex; align-items: center; gap: 8px; color: #fff; font-size: 0.92rem; cursor: pointer;">
+            <input type="checkbox" name="sound_enabled" checked style="accent-color: var(--accent-cyan);"> Bật âm thanh Gameshow (Web Audio)
+          </label>
+          <label style="display: flex; align-items: center; gap: 8px; color: #fff; font-size: 0.92rem; cursor: pointer;">
+            <input type="checkbox" name="effects_enabled" checked style="accent-color: var(--accent-cyan);"> Bật hiệu ứng hình ảnh (Pháo hoa, hào quang)
+          </label>
+          <label style="display: flex; align-items: center; gap: 8px; color: #fff; font-size: 0.92rem; cursor: pointer;">
+            <input type="checkbox" name="strict_price" style="accent-color: var(--accent-cyan);"> Hãy chọn giá đúng: Không được đoán vượt quá giá thật
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <!-- Cột phải: Thiết lập Số Đội & Tên/Màu Đội -->
+    <div class="glass-panel" style="padding: 26px;">
+      <h2 style="font-size: 1.25rem; font-weight: 800; color: #fff; margin-bottom: 18px;">
+        <i class="bi bi-people-fill" style="color: var(--accent-green);"></i> 4. Thiết Lập Đội Tham Gia (2 - 6 Đội)
+      </h2>
+
+      <div class="form-group">
+        <label class="form-label">Số lượng đội thi</label>
+        <div style="display: flex; gap: 10px;">
+          <% [2, 3, 4, 5, 6].forEach(num => { %>
+            <button type="button" class="btn-gameshow <%= num === 4 ? 'btn-primary' : 'btn-secondary' %> team-num-btn" onclick="setTeamCount(<%= num %>, this)" style="flex: 1; padding: 10px 0;">
+              <%= num %> Đội
+            </button>
+          <% }) %>
+        </div>
+        <input type="hidden" name="team_count" id="teamCountInput" value="4">
+      </div>
+
+      <div id="teamsContainer" style="display: flex; flex-direction: column; gap: 14px; margin-top: 20px;">
+        <!-- Javascript sẽ sinh các ô đội ở đây -->
+      </div>
+
+      <div style="margin-top: 30px; border-top: 1px solid var(--border-color); padding-top: 20px;">
+        <button type="submit" class="btn-gameshow btn-gold" style="width: 100%; padding: 15px; font-size: 1.2rem; font-weight: 800; justify-content: center;">
+          <i class="bi bi-play-circle-fill"></i> KHỞI ĐỘNG PHIÊN CHƠI NGAY
+        </button>
+      </div>
+    </div>
+
+  </div>
+</form>
+
+<script>
+  const defaultTeams = <%- JSON.stringify(defaultTeams) %>;
+
+  function filterQuestionSets() {
+    const selectedGame = document.querySelector('input[name="game_type_code"]:checked').value;
+    const select = document.getElementById('questionSetSelect');
+    let firstVisible = null;
+
+    Array.from(select.options).forEach(opt => {
+      if (opt.getAttribute('data-game') === selectedGame) {
+        opt.style.display = 'block';
+        if (!firstVisible) firstVisible = opt;
+      } else {
+        opt.style.display = 'none';
+      }
+    });
+
+    if (firstVisible) select.value = firstVisible.value;
+  }
+
+  function setTeamCount(count, btn) {
+    document.getElementById('teamCountInput').value = count;
+    document.querySelectorAll('.team-num-btn').forEach(b => {
+      b.classList.remove('btn-primary');
+      b.classList.add('btn-secondary');
+    });
+    btn.classList.remove('btn-secondary');
+    btn.classList.add('btn-primary');
+
+    renderTeams(count);
+  }
+
+  function renderTeams(count) {
+    const container = document.getElementById('teamsContainer');
+    container.innerHTML = '';
+
+    for (let i = 0; i < count; i++) {
+      const team = defaultTeams[i] || { name: `Đội ${i + 1}`, color: '#3b82f6' };
+      const div = document.createElement('div');
+      div.className = 'glass-panel';
+      div.style.padding = '12px 16px';
+      div.style.background = 'rgba(255,255,255,0.02)';
+      div.style.borderLeft = `5px solid ${team.color}`;
+      div.innerHTML = `
+        <div style="display: flex; gap: 12px; align-items: center;">
+          <input type="color" name="team_colors" value="${team.color}" style="width: 42px; height: 38px; border: none; border-radius: 8px; cursor: pointer; background: transparent;">
+          <input type="text" name="team_names" value="${team.name}" class="form-control" placeholder="Tên Đội ${i + 1}" required style="font-weight: 700;">
+        </div>
+      `;
+      container.appendChild(div);
+    }
+  }
+
+  // Khởi tạo
+  filterQuestionSets();
+  renderTeams(4);
+</script>

@@ -1,0 +1,163 @@
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
+  <div>
+    <h1 style="font-size: 2rem; font-weight: 800; letter-spacing: -0.5px;">Quản Lý Bộ Câu Hỏi</h1>
+    <p style="color: var(--text-muted); font-size: 1rem;">Tạo, chỉnh sửa, sao chép và xuất bộ câu hỏi ra Excel hoặc JSON.</p>
+  </div>
+  <div>
+    <button onclick="document.getElementById('createModal').style.display='flex'" class="btn-gameshow btn-primary">
+      <i class="bi bi-plus-circle-fill"></i> Tạo Bộ Câu Hỏi Mới
+    </button>
+  </div>
+</div>
+
+<!-- Filters -->
+<div class="glass-panel" style="padding: 16px 20px; margin-bottom: 25px;">
+  <form method="GET" action="/admin/question-sets" style="display: flex; gap: 15px; align-items: center; flex-wrap: wrap;">
+    <div style="flex: 1; min-width: 200px;">
+      <select name="game_type" class="form-control" onchange="this.form.submit()">
+        <option value="">-- Tất cả loại trò chơi --</option>
+        <% gameTypes.forEach(gt => { %>
+          <option value="<%= gt.code %>" <%= selectedGameType === gt.code ? 'selected' : '' %>><%= gt.name %></option>
+        <% }) %>
+      </select>
+    </div>
+    <div style="flex: 1; min-width: 200px;">
+      <input type="text" name="subject" class="form-control" placeholder="Lọc theo môn học..." value="<%= selectedSubject %>">
+    </div>
+    <button type="submit" class="btn-gameshow btn-secondary">
+      <i class="bi bi-search"></i> Lọc
+    </button>
+    <% if (selectedGameType || selectedSubject) { %>
+      <a href="/admin/question-sets" class="btn-gameshow btn-secondary" style="color: var(--accent-red);">Xóa lọc</a>
+    <% } %>
+  </form>
+</div>
+
+<!-- Question Sets Table -->
+<div class="glass-panel" style="overflow: hidden;">
+  <table style="width: 100%; border-collapse: collapse; text-align: left;">
+    <thead>
+      <tr style="background: rgba(255, 255, 255, 0.04); border-bottom: 1px solid var(--border-color); color: var(--text-muted); font-size: 0.85rem; text-transform: uppercase;">
+        <th style="padding: 14px 20px;">Tên Bộ Câu Hỏi</th>
+        <th style="padding: 14px 20px;">Trò Chơi</th>
+        <th style="padding: 14px 20px;">Môn / Khối</th>
+        <th style="padding: 14px 20px;">Số Câu</th>
+        <th style="padding: 14px 20px;">Ngày Tạo</th>
+        <th style="padding: 14px 20px; text-align: right;">Thao Tác</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% if (!sets || sets.length === 0) { %>
+        <tr>
+          <td colspan="6" style="padding: 40px; text-align: center; color: var(--text-muted);">
+            <i class="bi bi-inbox" style="font-size: 2.5rem; display: block; margin-bottom: 10px;"></i>
+            Chưa có bộ câu hỏi nào. Hãy tạo mới hoặc import từ Excel!
+          </td>
+        </tr>
+      <% } else { %>
+        <% sets.forEach(s => { %>
+          <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.06);">
+            <td style="padding: 16px 20px;">
+              <a href="/admin/questions/create?set_id=<%= s._id %>" style="color: #fff; font-weight: 700; text-decoration: none; font-size: 1.05rem;">
+                <%= s.name %>
+              </a>
+              <% if (s.description) { %>
+                <div style="font-size: 0.85rem; color: var(--text-muted); margin-top: 4px;"><%= s.description %></div>
+              <% } %>
+            </td>
+            <td style="padding: 16px 20px;">
+              <% const gt = gameTypes.find(g => g.code === s.game_type_code); %>
+              <span class="badge" style="background: <%= gt ? gt.color : '#3b82f6' %>22; color: <%= gt ? gt.color : '#3b82f6' %>; border: 1px solid <%= gt ? gt.color : '#3b82f6' %>55;">
+                <%= gt ? gt.name : s.game_type_code %>
+              </span>
+            </td>
+            <td style="padding: 16px 20px; color: var(--text-muted); font-size: 0.9rem;">
+              <%= s.subject %> - Lớp <%= s.grade %>
+            </td>
+            <td style="padding: 16px 20px;">
+              <span class="badge badge-gold" style="font-size: 0.9rem;"><%= s.actual_count %> câu</span>
+            </td>
+            <td style="padding: 16px 20px; color: var(--text-muted); font-size: 0.85rem;">
+              <%= new Date(s.created_at).toLocaleDateString('vi-VN') %>
+            </td>
+            <td style="padding: 16px 20px; text-align: right;">
+              <div style="display: inline-flex; gap: 6px;">
+                <a href="/admin/questions/create?set_id=<%= s._id %>" class="btn-gameshow btn-primary" style="padding: 6px 12px; font-size: 0.82rem;" title="Xem và Thêm câu hỏi">
+                  <i class="bi bi-pencil"></i> Sửa
+                </a>
+
+                <form method="POST" action="/admin/question-sets/<%= s._id %>/duplicate" style="display: inline;" onsubmit="return confirm('Bạn có chắc muốn nhân bản bộ câu hỏi này?')">
+                  <button type="submit" class="btn-gameshow btn-secondary" style="padding: 6px 10px; font-size: 0.82rem;" title="Nhân bản">
+                    <i class="bi bi-copy"></i>
+                  </button>
+                </form>
+
+                <a href="/admin/question-sets/<%= s._id %>/export?format=xlsx" class="btn-gameshow btn-secondary" style="padding: 6px 10px; font-size: 0.82rem;" title="Xuất Excel">
+                  <i class="bi bi-file-earmark-excel"></i>
+                </a>
+
+                <form method="POST" action="/admin/question-sets/<%= s._id %>/delete" style="display: inline;" onsubmit="return confirm('Xóa bộ câu hỏi này và toàn bộ câu hỏi bên trong?')">
+                  <button type="submit" class="btn-gameshow btn-danger" style="padding: 6px 10px; font-size: 0.82rem;" title="Xóa">
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </form>
+              </div>
+            </td>
+          </tr>
+        <% }) %>
+      <% } %>
+    </tbody>
+  </table>
+</div>
+
+<!-- Modal Tạo Bộ Câu Hỏi Mới -->
+<div id="createModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 999; align-items: center; justify-content: center; backdrop-filter: blur(5px);">
+  <div class="glass-panel" style="width: 100%; max-width: 540px; padding: 30px; background: #0c142b; border: 1px solid rgba(0, 242, 254, 0.4);">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+      <h2 style="font-size: 1.4rem; font-weight: 800; color: #fff;">Tạo Bộ Câu Hỏi Mới</h2>
+      <button onclick="document.getElementById('createModal').style.display='none'" style="background: none; border: none; color: var(--text-muted); font-size: 1.5rem; cursor: pointer;">&times;</button>
+    </div>
+
+    <form method="POST" action="/admin/question-sets">
+      <div class="form-group">
+        <label class="form-label">Tên bộ câu hỏi <span style="color: var(--accent-red)">*</span></label>
+        <input type="text" name="name" class="form-control" placeholder="Ví dụ: Ôn tập Học kỳ 1 - Tin học 11" required>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Trò chơi áp dụng <span style="color: var(--accent-red)">*</span></label>
+        <select name="game_type_code" class="form-control" required>
+          <% gameTypes.forEach(gt => { %>
+            <option value="<%= gt.code %>"><%= gt.name %></option>
+          <% }) %>
+        </select>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+        <div class="form-group">
+          <label class="form-label">Môn học</label>
+          <input type="text" name="subject" class="form-control" placeholder="Tin học, Toán, Sử...">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Khối lớp</label>
+          <input type="text" name="grade" class="form-control" placeholder="10, 11, 12...">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Chủ đề</label>
+        <input type="text" name="topic" class="form-control" placeholder="Ví dụ: Lập trình Python, Mạng máy tính">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Mô tả ngắn</label>
+        <textarea name="description" class="form-control" rows="2" placeholder="Ghi chú thêm về bộ câu hỏi..."></textarea>
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 25px;">
+        <button type="button" onclick="document.getElementById('createModal').style.display='none'" class="btn-gameshow btn-secondary">Hủy</button>
+        <button type="submit" class="btn-gameshow btn-primary"><i class="bi bi-check-lg"></i> Lưu Bộ Câu Hỏi</button>
+      </div>
+    </form>
+  </div>
+</div>

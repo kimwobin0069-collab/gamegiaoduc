@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= typeof title !== 'undefined' ? title : 'Gameshow Học Tập Lớp Học' %></title>
+  <link rel="stylesheet" href="/css/theme.css">
+  <style>
+    .admin-navbar {
+      background: rgba(13, 22, 45, 0.95);
+      border-bottom: 1px solid var(--border-color);
+      padding: 12px 30px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      backdrop-filter: blur(10px);
+    }
+    .nav-brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      color: #fff;
+      font-weight: 800;
+      font-size: 1.25rem;
+    }
+    .nav-brand i {
+      color: var(--accent-cyan);
+      font-size: 1.5rem;
+    }
+    .nav-links {
+      display: flex;
+      gap: 20px;
+      list-style: none;
+    }
+    .nav-links a {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-weight: 500;
+      font-size: 0.92rem;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      border-radius: 8px;
+      transition: all 0.2s ease;
+    }
+    .nav-links a:hover, .nav-links a.active {
+      color: var(--accent-cyan);
+      background: rgba(0, 242, 254, 0.08);
+    }
+    .user-section {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+    .main-container {
+      max-width: 1300px;
+      margin: 30px auto;
+      padding: 0 20px;
+    }
+  </style>
+</head>
+<body>
+  <header class="admin-navbar">
+    <a href="/admin/dashboard" class="nav-brand">
+      <i class="bi bi-controller"></i>
+      <span>GAMESHOW HỌC TẬP</span>
+    </a>
+
+    <ul class="nav-links">
+      <li><a href="/admin/dashboard"><i class="bi bi-speedometer2"></i> Tổng Quan</a></li>
+      <li><a href="/admin/games"><i class="bi bi-grid-fill"></i> 6 Trò Chơi</a></li>
+      <li><a href="/admin/question-sets"><i class="bi bi-collection-fill"></i> Bộ Câu Hỏi</a></li>
+      <li><a href="/admin/questions/create"><i class="bi bi-pencil-square"></i> Nhập Câu Hỏi</a></li>
+      <li><a href="/admin/questions/import"><i class="bi bi-file-earmark-excel-fill"></i> Import Excel</a></li>
+      <li><a href="/admin/templates"><i class="bi bi-download"></i> File Mẫu</a></li>
+      <li><a href="/admin/sessions/create" style="color: var(--accent-gold); font-weight: 700;"><i class="bi bi-play-circle-fill"></i> Tạo Phiên Chơi</a></li>
+    </ul>
+
+    <div class="user-section">
+      <% if (locals.currentUser) { %>
+        <span style="font-size: 0.9rem; color: var(--text-muted);">
+          <i class="bi bi-person-circle" style="color: var(--accent-cyan);"></i> <%= currentUser.displayName %>
+        </span>
+        <a href="/logout" class="btn-gameshow btn-secondary" style="padding: 6px 14px; font-size: 0.85rem;">
+          <i class="bi bi-box-arrow-right"></i> Đăng Xuất
+        </a>
+      <% } else { %>
+        <a href="/login" class="btn-gameshow btn-primary" style="padding: 6px 14px; font-size: 0.85rem;">Đăng Nhập</a>
+      <% } %>
+    </div>
+  </header>
+
+  <main class="main-container">
+    <% if (typeof success !== 'undefined' && success) { %>
+      <div class="alert alert-success">
+        <i class="bi bi-check-circle-fill"></i> <%= success %>
+      </div>
+    <% } %>
+
+    <% if (typeof error !== 'undefined' && error) { %>
+      <div class="alert alert-danger">
+        <i class="bi bi-exclamation-triangle-fill"></i> <%= error %>
+      </div>
+    <% } %>
+
+    <%- body %>
+  </main>
+</body>
+</html>

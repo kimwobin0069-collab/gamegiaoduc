@@ -1,0 +1,137 @@
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
+  <div>
+    <h1 style="font-size: 2rem; font-weight: 800; letter-spacing: -0.5px;">Kiểm Tra & Xem Trước Dữ Liệu Import</h1>
+    <p style="color: var(--text-muted); font-size: 1rem;">
+      Tệp: <b style="color: #fff;"><%= preview.fileName %></b> | Bộ câu hỏi: <b style="color: var(--accent-cyan);"><%= preview.setName %></b> (<%= preview.gameTypeCode %>)
+    </p>
+  </div>
+  <div style="display: flex; gap: 10px;">
+    <% if (preview.errorRows && preview.errorRows.length > 0) { %>
+      <a href="/admin/questions/download-error-report" class="btn-gameshow btn-secondary" style="border-color: var(--accent-red); color: #f87171;">
+        <i class="bi bi-file-earmark-x"></i> Tải Báo Cáo Lỗi (.xlsx)
+      </a>
+    <% } %>
+    <a href="/admin/questions/import" class="btn-gameshow btn-secondary">
+      <i class="bi bi-arrow-left"></i> Chọn tệp khác
+    </a>
+  </div>
+</div>
+
+<!-- Thống kê kết quả kiểm tra -->
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-bottom: 30px;">
+  <div class="glass-panel" style="padding: 20px; text-align: center;">
+    <div style="font-size: 0.85rem; color: var(--text-muted); font-weight: 700;">TỔNG SỐ DÒNG</div>
+    <div style="font-size: 2.2rem; font-weight: 800; color: #fff;"><%= preview.totalRows %></div>
+  </div>
+
+  <div class="glass-panel" style="padding: 20px; text-align: center; border-bottom: 3px solid var(--accent-green);">
+    <div style="font-size: 0.85rem; color: var(--accent-green); font-weight: 700;">DÒNG HỢP LỆ</div>
+    <div style="font-size: 2.2rem; font-weight: 800; color: var(--accent-green);"><%= preview.validRows ? preview.validRows.length : 0 %></div>
+  </div>
+
+  <div class="glass-panel" style="padding: 20px; text-align: center; border-bottom: 3px solid var(--accent-red);">
+    <div style="font-size: 0.85rem; color: var(--accent-red); font-weight: 700;">DÒNG BỊ LỖI</div>
+    <div style="font-size: 2.2rem; font-weight: 800; color: var(--accent-red);"><%= preview.errorRows ? preview.errorRows.length : 0 %></div>
+  </div>
+</div>
+
+<% if (!preview.headersValid) { %>
+  <div class="alert alert-danger" style="padding: 25px; margin-bottom: 30px;">
+    <h3 style="font-size: 1.2rem; margin-bottom: 8px;"><i class="bi bi-x-octagon-fill"></i> Tệp Không Hợp Lệ!</h3>
+    <p>Tệp tải lên không chứa đúng các cột bắt buộc. Các cột bị thiếu: <b><%= preview.missingColumns.join(', ') %></b></p>
+    <div style="margin-top: 15px;">
+      <a href="/admin/templates/download/<%= preview.gameTypeCode %>" class="btn-gameshow btn-gold" style="font-size: 0.9rem;">
+        <i class="bi bi-download"></i> Tải file mẫu chuẩn cho trò chơi này
+      </a>
+    </div>
+  </div>
+<% } else { %>
+
+  <!-- Nút Lưu dữ liệu -->
+  <div class="glass-panel" style="padding: 20px 25px; margin-bottom: 30px; display: flex; justify-content: space-between; align-items: center; background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.3);">
+    <div>
+      <div style="font-weight: 700; font-size: 1.1rem; color: #fff;">Sẵn sàng lưu vào cơ sở dữ liệu</div>
+      <div style="font-size: 0.9rem; color: var(--text-muted);">
+        Hệ thống sẽ lưu <b><%= preview.validRows.length %></b> dòng hợp lệ và tự động bỏ qua các dòng bị lỗi.
+      </div>
+    </div>
+    <form method="POST" action="/admin/questions/save-import">
+      <button type="submit" class="btn-gameshow btn-success" <%= preview.validRows.length === 0 ? 'disabled' : '' %> style="padding: 12px 28px; font-size: 1.05rem;">
+        <i class="bi bi-check2-circle"></i> Bỏ Qua Lỗi & Lưu <%= preview.validRows.length %> Dòng Hợp Lệ
+      </button>
+    </form>
+  </div>
+
+  <!-- Bảng chi tiết các dòng dữ liệu -->
+  <div class="glass-panel" style="overflow: hidden;">
+    <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem;">
+      <thead>
+        <tr style="background: rgba(255, 255, 255, 0.04); border-bottom: 1px solid var(--border-color); color: var(--text-muted); font-size: 0.85rem; text-transform: uppercase;">
+          <th style="padding: 14px 20px; width: 90px;">Dòng</th>
+          <th style="padding: 14px 20px; width: 120px;">Trạng Thái</th>
+          <th style="padding: 14px 20px;">Nội Dung Câu Hỏi / Từ Khóa</th>
+          <th style="padding: 14px 20px;">Chi Tiết Dữ Liệu</th>
+          <th style="padding: 14px 20px;">Ghi Chú / Lỗi</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- 1. Danh sách dòng bị lỗi trước để người dùng dễ kiểm tra -->
+        <% if (preview.errorRows && preview.errorRows.length > 0) { %>
+          <% preview.errorRows.forEach(err => { %>
+            <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.06); background: rgba(239, 68, 68, 0.08);">
+              <td style="padding: 14px 20px; font-weight: 700; color: var(--accent-red);"><%= err.rowNumber %></td>
+              <td style="padding: 14px 20px;">
+                <span class="badge badge-red"><i class="bi bi-x-circle-fill"></i> Lỗi</span>
+              </td>
+              <td style="padding: 14px 20px; color: #fff;">
+                <%= err.data.question || err.data.clue || err.data.keyword || err.data.item_name || '(Trống)' %>
+              </td>
+              <td style="padding: 14px 20px; font-size: 0.82rem; color: var(--text-muted); max-width: 300px; word-break: break-word;">
+                <%= JSON.stringify(err.data) %>
+              </td>
+              <td style="padding: 14px 20px; color: #f87171; font-weight: 600;">
+                <ul style="padding-left: 18px; margin: 0;">
+                  <% err.errors.forEach(e => { %>
+                    <li><%= e %></li>
+                  <% }) %>
+                </ul>
+              </td>
+            </tr>
+          <% }) %>
+        <% } %>
+
+        <!-- 2. Danh sách dòng hợp lệ -->
+        <% if (preview.validRows && preview.validRows.length > 0) { %>
+          <% preview.validRows.forEach(row => { %>
+            <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.06);">
+              <td style="padding: 14px 20px; font-weight: 700; color: var(--accent-cyan);"><%= row.rowNumber %></td>
+              <td style="padding: 14px 20px;">
+                <span class="badge badge-green"><i class="bi bi-check-circle-fill"></i> Hợp lệ</span>
+              </td>
+              <td style="padding: 14px 20px; font-weight: 600; color: #fff;">
+                <%= row.data.question || row.data.clue || row.data.keyword || row.data.item_name %>
+              </td>
+              <td style="padding: 14px 20px; font-size: 0.85rem; color: var(--text-muted);">
+                <% if (row.data.correct_answer) { %>
+                  <span>Đáp án: <b style="color: var(--accent-green)"><%= row.data.correct_answer %></b></span>
+                <% } %>
+                <% if (row.data.keyword) { %>
+                  <span>Từ khóa: <b style="color: var(--accent-cyan)"><%= row.data.keyword %></b></span>
+                <% } %>
+                <% if (row.data.answer) { %>
+                  <span>Đáp án: <b style="color: var(--accent-cyan)"><%= row.data.answer %></b></span>
+                <% } %>
+                <% if (row.data.correct_price) { %>
+                  <span>Giá: <b style="color: var(--accent-gold)"><%= Number(row.data.correct_price).toLocaleString() %> đ</b></span>
+                <% } %>
+              </td>
+              <td style="padding: 14px 20px; color: var(--accent-green);">
+                <i class="bi bi-check2"></i> Đầy đủ & Hợp lệ
+              </td>
+            </tr>
+          <% }) %>
+        <% } %>
+      </tbody>
+    </table>
+  </div>
+<% } %>

@@ -1,0 +1,33 @@
+{
+  "name": "hoatdong",
+  "version": "1.0.0",
+  "description": "Nền tảng Trò chơi Học tập Lớp học (Educational Gameshow Platform)",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "migrate": "node migrations/run-migrations.js",
+    "test": "node --test tests/*.test.js"
+  },
+  "keywords": [
+    "gameshow",
+    "education",
+    "socketio",
+    "nodejs",
+    "express"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "dotenv": "^16.4.7",
+    "ejs": "^3.1.10",
+    "express": "^4.21.2",
+    "express-ejs-layouts": "^2.5.1",
+    "express-session": "^1.18.1",
+    "mongoose": "^8.9.5",
+    "multer": "^1.4.5-lts.1",
+    "socket.io": "^4.8.1",
+    "xlsx": "^0.18.5"
+  }
+}

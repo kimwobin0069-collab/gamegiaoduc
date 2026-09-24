@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title><%= title %></title>
+  <link rel="stylesheet" href="/css/theme.css">
+  <style>
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      text-align: center;
+      background: #060a17;
+      color: #fff;
+    }
+  </style>
+</head>
+<body>
+  <div class="glass-panel" style="padding: 40px 50px; max-width: 500px;">
+    <i class="bi bi-tv" style="font-size: 4rem; color: var(--accent-red); margin-bottom: 20px; display: block;"></i>
+    <h1 style="font-size: 1.6rem; font-weight: 800; margin-bottom: 10px;">Không Tìm Thấy Phòng Thi</h1>
+    <p style="color: var(--text-muted); margin-bottom: 25px;">
+      Mã phòng <b style="color: var(--accent-gold);"><%= typeof code !== 'undefined' ? code : '' %></b> không tồn tại hoặc đã kết thúc.
+    </p>
+    <a href="/login" class="btn-gameshow btn-primary">Quay Lại Trang Chủ</a>
+  </div>
+</body>
+</html>
