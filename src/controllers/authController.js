@@ -1,4 +1,5 @@
 const User = require('../models/User');
+const connectDB = require('../config/database');
 
 exports.getLogin = (req, res) => {
   res.render('auth/login', {
@@ -16,6 +17,9 @@ exports.postLogin = async (req, res) => {
       req.session.loginError = 'Vui lòng nhập đầy đủ tên đăng nhập và mật khẩu!';
       return res.redirect('/login');
     }
+
+    // Đảm bảo kết nối cơ sở dữ liệu luôn sẵn sàng
+    await connectDB();
 
     const user = await User.findOne({ username: username.toLowerCase().trim() });
     if (!user) {
@@ -41,7 +45,7 @@ exports.postLogin = async (req, res) => {
     res.redirect(returnTo);
   } catch (error) {
     console.error('Lỗi đăng nhập:', error);
-    req.session.loginError = 'Đã có lỗi xảy ra. Vui lòng thử lại!';
+    req.session.loginError = 'Lỗi hệ thống: ' + (error.message || 'Không thể kết nối cơ sở dữ liệu!');
     res.redirect('/login');
   }
 };
